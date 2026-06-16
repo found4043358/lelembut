@@ -207,10 +207,11 @@ function initInput(){
         if(typeof player !== 'undefined') {
             player.flashlightOn = !player.flashlightOn;
             if(typeof Audio !== 'undefined' && Audio.pick) Audio.pick();
+            const btn = document.getElementById('btn-light');
+            if(btn) btn.style.backgroundColor = player.flashlightOn ? 'rgba(0,255,0,0.6)' : '';
         }
     }, () => {});
     bindTouch('btn-pause', () => { if(typeof togglePause === 'function') togglePause(); }, () => {});
-    bindTouch('btn-inventory', () => { if(typeof toggleInventory === 'function') toggleInventory(); }, () => {});
     bindTouch('btn-camera', () => { 
         if(typeof zoomState !== 'undefined') {
             zoomState = (zoomState + 1) % 3;
@@ -242,8 +243,12 @@ function initInput(){
 
     // Free Aim Mechanic
     let aimTouchId = null;
-    let aimShoots = true;
+    let aimShoots = false;
     const gameContainer = document.getElementById('game-container');
+    
+    bindTouch('hud-left', () => {
+        if(gameState==='PLAY' || gameState==='INVENTORY') toggleInventory();
+    }, () => {});
 
     function updateMousePosFromTouch(touch) {
         if(!touch) return;

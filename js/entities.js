@@ -74,9 +74,14 @@ function updateHUD(){
     }
     
     const reloadIcon = document.getElementById('reload-icon');
+    const magEmptyIcon = document.getElementById('mag-empty-icon');
     if (reloadIcon) {
         if(player.reloadCd > 0) reloadIcon.classList.remove('hidden');
         else reloadIcon.classList.add('hidden');
+    }
+    if (magEmptyIcon) {
+        if(player.mag === 0) magEmptyIcon.classList.remove('hidden');
+        else magEmptyIcon.classList.add('hidden');
     }
     if(currentMapIdx !== -1) {
         document.getElementById('room-label').innerText = 'Room ' + currentMapIdx;

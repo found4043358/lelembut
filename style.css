@@ -201,3 +201,10 @@ button.ed-btn.active{background:#ff2222;color:#fff;border-color:#ff0000;text-sha
     height: 45px;
     font-size: 18px;
 }
+* { -webkit-tap-highlight-color: transparent; }
+.blink { animation: blinker 1s linear infinite; }
+@keyframes blinker { 50% { opacity: 0; } }
+
+@media (max-width: 768px) {
+    #inv-container { transform: scale(0.85); }
+}

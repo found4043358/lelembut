@@ -22,7 +22,7 @@
                 <div class="hud-item" style="font-size: 24px; color: #fff;"><i class="fa-solid fa-battery-full" id="battery-icon"></i></div>
                 <div class="hud-item" id="lungs-container" style="display:none; font-size: 24px; color: #fff;"><i class="fa-solid fa-lungs" id="lungs-icon"></i></div>
                 <div class="hud-item" id="nv-container" style="display:none; font-size: 24px; color: #0f0;"><i class="fa-solid fa-glasses"></i></div>
-                <div class="hud-item"><span class="hud-icon"><i class="fa-solid fa-person-rifle"></i></span><span id="ammo-txt" style="display:inline-block; transition: transform 0.2s;">10/40</span> <i id="reload-icon" class="fa-solid fa-arrows-rotate fa-spin hidden" style="margin-left:8px; font-size:14px; color:#ffcc00;"></i></div>
+                <div class="hud-item"><span class="hud-icon"><i class="fa-solid fa-person-rifle"></i></span><span id="ammo-txt" style="display:inline-block; transition: transform 0.2s;">10/40</span> <i id="reload-icon" class="fa-solid fa-arrows-rotate fa-spin hidden" style="margin-left:8px; font-size:14px; color:#ffcc00;"></i><i id="mag-empty-icon" class="fa-solid fa-triangle-exclamation blink hidden" style="margin-left:8px; font-size:14px; color:#ff3333;"></i></div>
                 <div class="hud-item" id="aim-lock-icon" style="display:none; color:#ffaa00;"><span class="hud-icon"><i class="fa-solid fa-crosshairs"></i></span><span id="aim-dir-txt"></span></div>
             </div>
             <div id="room-label" class="hidden"></div>
@@ -36,7 +36,7 @@
 
         <!-- Inventory Menu -->
         <div id="inventory-menu" class="overlay-menu hidden" onclick="if(event.target===this) toggleInventory()">
-            <div style="background:rgba(0,0,0,0.85); width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 20px; border-radius: 10px; border: 2px solid #555;">
+            <div id="inv-container" style="background:rgba(0,0,0,0.85); width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 20px; border-radius: 10px; border: 2px solid #555; transform-origin: center;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; width: 100%;">
                     <h2 style="margin:0; font-size: 24px; color: #fff;"><i class="fa-solid fa-briefcase"></i> INVENTORY</h2>
                     <button onclick="toggleInventory()" style="padding: 5px 15px; font-size: 20px; background: transparent; border: none; color: #f44; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
@@ -388,17 +388,9 @@
         <!-- Mobile Controls -->
         <div id="mobile-controls" class="hidden">
             <!-- Top Buttons -->
-            <button id="btn-pause" class="mc-btn mc-top" data-id="pause" style="top:20px; right:20px;"><i class="fa-solid fa-pause"></i></button>
-            <button id="btn-inventory" class="mc-btn mc-top" data-id="inventory" style="top:20px; right:90px;"><i class="fa-solid fa-briefcase"></i></button>
-            <button id="btn-camera" class="mc-btn mc-top" data-id="camera" style="top:20px; right:160px;"><i class="fa-solid fa-video"></i></button>
-            <button id="btn-aim" class="mc-btn mc-top" data-id="aim" style="top:20px; right:230px;"><i class="fa-solid fa-bullseye"></i></button>
-            <button id="btn-dev" class="mc-btn mc-top hidden" data-id="dev" style="top:20px; right:300px; background:rgba(139,0,0,0.6);"><i class="fa-solid fa-wrench"></i></button>
-            <button id="btn-aim-shoot" class="mc-btn mc-top" data-id="aim-shoot" style="top:90px; right:20px;">
-                <div style="position:relative; display:inline-block;">
-                    <i class="fa-solid fa-hand-pointer"></i>
-                    <i class="fa-solid fa-burst" style="font-size:0.5em; position:absolute; top:-5px; right:-8px; color:#ffcc00;"></i>
-                </div>
-            </button>
+            <button id="btn-pause" class="mc-btn mc-top" data-id="pause" style="top:20px; right:20px; transform: scale(0.7); transform-origin: top right;"><i class="fa-solid fa-pause"></i></button>
+            <button id="btn-camera" class="mc-btn mc-top" data-id="camera" style="top:20px; right:90px;"><i class="fa-solid fa-video"></i></button>
+            <button id="btn-dev" class="mc-btn mc-top hidden" data-id="dev" style="top:20px; right:160px; background:rgba(139,0,0,0.6);"><i class="fa-solid fa-wrench"></i></button>
 
             <!-- D-Pad -->
             <button id="btn-up" class="mc-btn mc-dir" data-id="up" style="bottom:90px; left:90px;"><i class="fa-solid fa-caret-up"></i></button>
@@ -412,12 +404,19 @@
             </div>
 
             <!-- Action Buttons -->
-            <button id="btn-light" class="mc-btn mc-act" data-id="light" style="bottom:160px; right:90px;"><i class="fa-solid fa-lightbulb"></i></button>
-            <button id="btn-interact" class="mc-btn mc-act" data-id="interact" style="bottom:90px; right:90px;"><i class="fa-solid fa-hand"></i></button>
-            <button id="btn-reload" class="mc-btn mc-act" data-id="reload" style="bottom:90px; right:20px;"><i class="fa-solid fa-arrows-rotate"></i></button>
-            <button id="btn-shoot" class="mc-btn mc-act" data-id="shoot" style="bottom:20px; right:90px;"><i class="fa-solid fa-crosshairs"></i></button>
+            <button id="btn-light" class="mc-btn mc-top" data-id="light" style="bottom:190px; left:20px;"><i class="fa-solid fa-lightbulb"></i></button>
+            <button id="btn-interact" class="mc-btn mc-act hidden" data-id="interact" style="bottom:170px; right:100px;"><i class="fa-solid fa-hand"></i></button>
+            <button id="btn-reload" class="mc-btn mc-act" data-id="reload" style="bottom:170px; right:20px;"><i class="fa-solid fa-arrows-rotate"></i></button>
+            <button id="btn-aim" class="mc-btn mc-act" data-id="aim" style="bottom:100px; right:20px;"><i class="fa-solid fa-bullseye"></i></button>
+            <button id="btn-aim-shoot" class="mc-btn mc-act" data-id="aim-shoot" style="bottom:100px; right:100px; background:rgba(139,0,0,0.6);">
+                <div style="position:relative; display:inline-block;">
+                    <i class="fa-solid fa-hand-pointer"></i>
+                    <i class="fa-solid fa-burst" style="font-size:0.5em; position:absolute; top:-5px; right:-8px; color:#ffffff;"></i>
+                </div>
+            </button>
+            <button id="btn-shoot" class="mc-btn mc-act" data-id="shoot" style="bottom:20px; right:100px;"><i class="fa-solid fa-crosshairs"></i></button>
             <button id="btn-shoot-left" class="mc-btn mc-act" data-id="shoot-left" style="bottom:20px; left:230px;"><i class="fa-solid fa-crosshairs"></i></button>
-            <button id="btn-jump" class="mc-btn mc-act" data-id="jump" style="bottom:20px; right:20px;"><i class="fa-solid fa-arrow-up"></i></button>
+            <button id="btn-jump" class="mc-btn mc-act" data-id="jump" style="bottom:20px; right:20px; width:70px; height:70px; font-size:30px;"><i class="fa-solid fa-arrow-up"></i></button>
         </div>
 
         <!-- Mobile Layout Editor Overlay -->

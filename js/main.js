@@ -502,7 +502,14 @@ function updatePlay(dt){
         }
     }
     const pr=document.getElementById('prompt-box');
-    if(canDoor) pr.classList.remove('hidden'); else pr.classList.add('hidden');
+    const bi=document.getElementById('btn-interact');
+    if(canDoor) { 
+        pr.classList.remove('hidden'); 
+        if(bi) bi.classList.remove('hidden'); 
+    } else { 
+        pr.classList.add('hidden'); 
+        if(bi) bi.classList.add('hidden'); 
+    }
 
     let aimDir = aimLock;
     if(keys.u) aimDir = -1;
