@@ -123,8 +123,8 @@ function initInput(){
         }
         if(e.code==='KeyM' && gameState==='PLAY') {
             zoomState = (zoomState + 1) % 3;
-            if(zoomState===0) camZoomTarget = 1;
-            else if(zoomState===1) camZoomTarget = 1.4;
+            if(zoomState===0) camZoomTarget = 2.0;
+            else if(zoomState===1) camZoomTarget = 1.5;
             else if(zoomState===2) camZoomTarget = 1.2;
         }
 
@@ -214,8 +214,8 @@ function initInput(){
     bindTouch('btn-camera', () => { 
         if(typeof zoomState !== 'undefined') {
             zoomState = (zoomState + 1) % 3;
-            if(zoomState===0) camZoomTarget = 1;
-            else if(zoomState===1) camZoomTarget = 1.4;
+            if(zoomState===0) camZoomTarget = 2.0;
+            else if(zoomState===1) camZoomTarget = 1.5;
             else if(zoomState===2) camZoomTarget = 1.2;
         }
     }, () => {});

@@ -57,14 +57,16 @@ window.migrateToSupabase = async function() {
 
 async function fetchLevels(mode){
     try {
+        const list = document.getElementById(mode==='play'?'play-level-list':'edit-level-list');
+        list.innerHTML = '<div style="color:#666; text-align:center; padding:20px;">Loading levels... <i class="fa-solid fa-spinner fa-spin"></i></div>';
+        
         const { data: levels, error } = await supabaseClient
             .from('levels')
             .select('id, name, sort_order')
             .order('sort_order', { ascending: true });
 
         if (error) throw error;
-
-        const list = document.getElementById(mode==='play'?'play-level-list':'edit-level-list');
+        
         list.innerHTML = '';
         if(levels && levels.length>0){
             levelList = levels;
@@ -116,7 +118,6 @@ async function moveLevel(id, direction) {
 
 async function playLevel(id){
     try {
-        showLoading("LOADING LEVEL...");
         const { data, error } = await supabaseClient
             .from('levels')
             .select('*')
@@ -131,10 +132,8 @@ async function playLevel(id){
             respawnPoint = {x: map.spawnX, y: map.spawnY, mapIdx: -1};
             respawnData = null;
             startGameplay();
-            hideLoading();
         });
     } catch(e) { 
-        hideLoading();
         showToast('Error loading level'); 
     }
 }

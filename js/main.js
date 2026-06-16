@@ -66,7 +66,7 @@ function startGameplay(resetAll=true){
     crumblingTiles.length=0;
     crackingTiles.length=0;
     camShake = 0;
-    camZoom = 4.0; camZoomTarget = 1.4; zoomState = 1;
+    camZoom = 4.0; camZoomTarget = 2.0; zoomState = 0;
     
     const m = getActiveMap();
     cam.mw = m.w; cam.mh = m.h + CH/2;
