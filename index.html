@@ -92,10 +92,45 @@
         </div>
 
         <!-- Dev Menu -->
-        <div id="dev-menu" class="overlay-menu hidden" style="background:rgba(20,0,40,0.95);">
-            <h2 style="color:#d400ff;">DEV MENU</h2>
-            <p style="color:#aaa; font-size:12px; margin-bottom:20px;">Overall Game Configuration</p>
-            <button onclick="transitionTo('main-menu')"><i class="fa-solid fa-house"></i> Main Menu</button>
+        <div id="dev-menu" class="overlay-menu hidden" style="background:rgba(20,0,40,0.95); overflow-y:auto; padding:30px;">
+            <h2 style="color:#d400ff; margin-bottom: 5px;">DEV MENU</h2>
+            <p style="color:#aaa; font-size:12px; margin-bottom:20px;">Global Game Configuration (Applies to all users)</p>
+            
+            <div style="display:flex; gap:20px; flex-wrap:wrap; justify-content:center; max-width:800px; text-align:left;">
+                <!-- Visuals -->
+                <div style="background:#1a1a24; border:1px solid #445; padding:15px; border-radius:5px; flex:1; min-width:250px;">
+                    <h3 style="color:#0df; margin-top:0; border-bottom:1px solid #445; padding-bottom:5px;">Visual Filters</h3>
+                    <label>Saturation (<span id="val-sat">100</span>%)</label>
+                    <input type="range" id="dev-sat" min="0" max="200" value="100" oninput="previewVisuals()" style="width:100%; margin-bottom:10px;">
+                    
+                    <label>Contrast (<span id="val-con">100</span>%)</label>
+                    <input type="range" id="dev-con" min="0" max="200" value="100" oninput="previewVisuals()" style="width:100%; margin-bottom:10px;">
+                    
+                    <label>Brightness (<span id="val-bri">100</span>%)</label>
+                    <input type="range" id="dev-bri" min="0" max="200" value="100" oninput="previewVisuals()" style="width:100%; margin-bottom:15px;">
+                    
+                    <button class="ed-btn" onclick="resetVisuals()" style="width:100%; margin-bottom:5px;"><i class="fa-solid fa-rotate-left"></i> Reset Visuals</button>
+                    <button class="ed-btn" onclick="saveGlobalVisuals()" style="width:100%; background:#005500; border-color:#0f0; margin-bottom:20px;"><i class="fa-solid fa-floppy-disk"></i> Apply Visuals as Default</button>
+                    
+                    <h3 style="color:#0df; margin-top:0; border-bottom:1px solid #445; padding-bottom:5px;">Global Controls</h3>
+                    <p style="font-size:11px; color:#aaa; margin-bottom:10px;">Set your controls in Settings, then click below to make them the default for everyone.</p>
+                    <button class="ed-btn" onclick="saveGlobalControls()" style="width:100%; background:#005500; border-color:#0f0;"><i class="fa-solid fa-gamepad"></i> Apply Controls as Default</button>
+                </div>
+
+                <!-- Dev Notes -->
+                <div style="background:#1a1a24; border:1px solid #445; padding:15px; border-radius:5px; flex:1; min-width:300px; display:flex; flex-direction:column;">
+                    <h3 style="color:#0df; margin-top:0; border-bottom:1px solid #445; padding-bottom:5px;">Shared Dev Notes</h3>
+                    <div style="display:flex; gap:5px; margin-bottom:5px;">
+                        <button class="ed-btn" onclick="document.execCommand('undo')" title="Undo"><i class="fa-solid fa-rotate-left"></i> Undo</button>
+                        <button class="ed-btn" onclick="document.execCommand('redo')" title="Redo"><i class="fa-solid fa-rotate-right"></i> Redo</button>
+                        <button class="ed-btn" onclick="fetchGlobalSettings()" title="Reload from DB"><i class="fa-solid fa-sync"></i> Reload</button>
+                    </div>
+                    <textarea id="dev-notes" style="flex:1; width:100%; background:#111; color:#0f0; border:1px solid #333; font-family:monospace; padding:10px; resize:vertical; min-height:150px;" placeholder="Write global team notes here..."></textarea>
+                    <button class="ed-btn" onclick="saveGlobalNotes()" style="width:100%; margin-top:10px; background:#005500; border-color:#0f0;"><i class="fa-solid fa-floppy-disk"></i> Save Notes</button>
+                </div>
+            </div>
+
+            <button onclick="transitionTo('main-menu')" style="margin-top:20px;"><i class="fa-solid fa-house"></i> Main Menu</button>
         </div>
 
         <!-- Play Level Select -->

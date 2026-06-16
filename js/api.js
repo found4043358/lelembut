@@ -287,3 +287,128 @@ function attemptExitEditor(){
     }
 }
 
+// ============ GLOBAL DEV SETTINGS ============
+let globalSettings = null;
+
+async function fetchGlobalSettings() {
+    try {
+        const { data, error } = await supabaseClient.from('global_settings').select('*').eq('id', 1).single();
+        if(error && error.code !== 'PGRST116') throw error; // PGRST116 is no rows
+        
+        if(data) {
+            globalSettings = data;
+            // Update UI sliders if in Dev Menu
+            if(data.visuals) {
+                const s = document.getElementById('dev-sat');
+                const c = document.getElementById('dev-con');
+                const b = document.getElementById('dev-bri');
+                if(s && c && b) {
+                    s.value = data.visuals.saturation || 100;
+                    c.value = data.visuals.contrast || 100;
+                    b.value = data.visuals.brightness || 100;
+                }
+                applyVisuals(data.visuals);
+            }
+            if(data.dev_notes !== undefined) {
+                const txt = document.getElementById('dev-notes');
+                if(txt) txt.value = data.dev_notes;
+            }
+            if(data.controls && Object.keys(data.controls).length > 0) {
+                if(typeof loadBinds === 'function') loadBinds();
+            }
+        }
+    } catch(e) {
+        console.error("Error fetching global settings:", e);
+    }
+}
+
+function previewVisuals() {
+    const s = document.getElementById('dev-sat').value;
+    const c = document.getElementById('dev-con').value;
+    const b = document.getElementById('dev-bri').value;
+    
+    document.getElementById('val-sat').innerText = s;
+    document.getElementById('val-con').innerText = c;
+    document.getElementById('val-bri').innerText = b;
+    
+    applyVisuals({ saturation: s, contrast: c, brightness: b });
+}
+
+function resetVisuals() {
+    document.getElementById('dev-sat').value = 100;
+    document.getElementById('dev-con').value = 100;
+    document.getElementById('dev-bri').value = 100;
+    previewVisuals();
+}
+
+function applyVisuals(v) {
+    const s = v.saturation || 100;
+    const c = v.contrast || 100;
+    const b = v.brightness || 100;
+    document.body.style.filter = `saturate(${s}%) contrast(${c}%) brightness(${b}%)`;
+}
+
+async function saveGlobalVisuals() {
+    try {
+        showLoading("SAVING CONFIG...");
+        const s = parseInt(document.getElementById('dev-sat').value);
+        const c = parseInt(document.getElementById('dev-con').value);
+        const b = parseInt(document.getElementById('dev-bri').value);
+        
+        const newVisuals = { saturation: s, contrast: c, brightness: b };
+        const { error } = await supabaseClient.from('global_settings')
+            .update({ visuals: newVisuals })
+            .eq('id', 1);
+            
+        hideLoading();
+        if(error) throw error;
+        showToast("Global Visuals Applied");
+    } catch(e) {
+        hideLoading();
+        console.error(e);
+        showToast("Error saving visuals");
+    }
+}
+
+async function saveGlobalNotes() {
+    try {
+        showLoading("SAVING NOTES...");
+        const text = document.getElementById('dev-notes').value;
+        const { error } = await supabaseClient.from('global_settings')
+            .update({ dev_notes: text })
+            .eq('id', 1);
+            
+        hideLoading();
+        if(error) throw error;
+        showToast("Notes Saved Globally");
+    } catch(e) {
+        hideLoading();
+        console.error(e);
+        showToast("Error saving notes");
+    }
+}
+
+async function saveGlobalControls() {
+    try {
+        if(typeof binds === 'undefined') {
+            showToast("Binds not loaded yet");
+            return;
+        }
+        showLoading("SAVING CONTROLS...");
+        const { error } = await supabaseClient.from('global_settings')
+            .update({ controls: binds })
+            .eq('id', 1);
+            
+        hideLoading();
+        if(error) throw error;
+        showToast("Controls Saved as Global Default");
+    } catch(e) {
+        hideLoading();
+        console.error(e);
+        showToast("Error saving controls");
+    }
+}
+
+// Call on startup
+window.addEventListener('load', fetchGlobalSettings);
+

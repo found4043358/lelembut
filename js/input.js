@@ -5,7 +5,11 @@ let waitingForBind = null;
 
 function loadBinds(){
     const saved = localStorage.getItem('lelembut_binds');
-    if(saved) binds = JSON.parse(saved);
+    if(saved) {
+        binds = JSON.parse(saved);
+    } else if (window.globalSettings && window.globalSettings.controls && Object.keys(window.globalSettings.controls).length > 0) {
+        binds = window.globalSettings.controls;
+    }
     updateBindUI();
 }
 function saveBinds(){ localStorage.setItem('lelembut_binds', JSON.stringify(binds)); }
