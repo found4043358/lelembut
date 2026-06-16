@@ -223,9 +223,26 @@ function initInput(){
             if(typeof updateHUD === 'function') updateHUD();
         }
     }, () => {});
+    
+    bindTouch('btn-aim-shoot', () => { 
+        aimShoots = !aimShoots; 
+        const btn = document.getElementById('btn-aim-shoot');
+        if(btn) btn.style.backgroundColor = aimShoots ? '' : 'rgba(139,0,0,0.6)';
+        if(typeof showToast === 'function') showToast(aimShoots ? "Tap to Shoot: ON" : "Tap to Shoot: OFF");
+    }, () => {});
+
+    bindTouch('btn-auto-fire', () => {
+        autoFire = !autoFire;
+        keys.shoot = autoFire ? 1 : 0;
+        const btn = document.getElementById('btn-auto-fire');
+        if(btn) btn.style.backgroundColor = autoFire ? 'rgba(139,0,0,0.6)' : '';
+        if(typeof showToast === 'function') showToast(autoFire ? "Auto Fire: ON" : "Auto Fire: OFF");
+    }, () => {});
 
     // Free Aim Mechanic
     let aimTouchId = null;
+    let aimShoots = true;
+    let autoFire = false;
     const gameContainer = document.getElementById('game-container');
 
     function updateMousePosFromTouch(touch) {
@@ -261,7 +278,7 @@ function initInput(){
                 if(!t.target.closest('.mc-btn') && aimTouchId === null) {
                     aimTouchId = t.identifier;
                     updateMousePosFromTouch(t);
-                    keys.shoot = 1;
+                    if(aimShoots) keys.shoot = 1;
                 }
             }
         }
@@ -285,7 +302,7 @@ function initInput(){
                 if(e.changedTouches[i].identifier === aimTouchId) {
                     aimTouchId = null;
                     const shootBtn = document.getElementById('btn-shoot');
-                    if(!shootBtn || !shootBtn.classList.contains('active')) {
+                    if((!shootBtn || !shootBtn.classList.contains('active')) && !autoFire) {
                         keys.shoot = 0;
                     }
                 }
