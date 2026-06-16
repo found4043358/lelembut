@@ -139,22 +139,20 @@ button.ed-btn.active{background:#ff2222;color:#fff;border-color:#ff0000;text-sha
 /* Mobile Controls */
 #mobile-controls {
     position: absolute;
-    bottom: 20px;
+    top: 0;
     left: 0;
-    width: 100%;
-    height: auto;
+    width: 100vw;
+    height: 100vh;
     z-index: 150;
     pointer-events: none;
-    display: flex;
-    justify-content: space-between;
-    padding: 0 20px;
 }
 
 #mobile-controls:not(.hidden) {
-    display: flex; /* Override hidden */
+    display: block; /* Override hidden */
 }
 
 .mc-btn {
+    position: absolute;
     background: rgba(40, 40, 40, 0.6);
     color: rgba(255, 255, 255, 0.8);
     border: 2px solid rgba(100, 100, 100, 0.5);
@@ -172,44 +170,34 @@ button.ed-btn.active{background:#ff2222;color:#fff;border-color:#ff0000;text-sha
     margin: 0;
     padding: 0;
     box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    transition: background 0.1s, transform 0.1s, border-color 0.1s;
+    transition: background 0.1s, border-color 0.1s;
+    transform: translate(-50%, 50%); /* Centers the button on its bottom/left or top/right origin depending on dragging but let's just use top/left for ease of JS, wait no let's not use translate here if we want simple top/left drag */
+    transform: none;
 }
 
 .mc-btn:active, .mc-btn.active {
     background: rgba(139, 0, 0, 0.8);
     border-color: #ff0000;
-    transform: scale(0.95);
     box-shadow: 0 0 15px rgba(255,0,0,0.6);
     color: #fff;
 }
 
-#mc-dpad {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
+/* Layout Editor Styles */
+.mc-btn.edit-mode {
+    border: 2px dashed #0f0;
+    background: rgba(0, 100, 0, 0.5);
+    animation: pulse-edit 1.5s infinite;
+    cursor: move;
 }
 
-.mc-dpad-middle {
-    display: flex;
-    align-items: center;
-    gap: 5px;
+@keyframes pulse-edit {
+    0% { box-shadow: 0 0 5px #0f0; }
+    50% { box-shadow: 0 0 15px #0f0; }
+    100% { box-shadow: 0 0 5px #0f0; }
 }
 
-.mc-dpad-center {
-    width: 60px;
-    height: 60px;
-}
-
-#mc-actions {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 15px;
-    justify-content: flex-end;
-}
-
-.mc-act-row {
-    display: flex;
-    gap: 15px;
+.mc-btn.mc-top {
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
 }

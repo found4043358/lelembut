@@ -172,6 +172,9 @@
                     <div class="bind-row" style="justify-content:flex-start; gap:10px; margin-top:15px; border-top:1px solid #445; padding-top:10px; width:100%;">
                         <input type="checkbox" id="set-force-mobile" onchange="toggleForceMobileControls(this.checked)"> <label for="set-force-mobile">Force On-Screen Buttons</label>
                     </div>
+                    <div class="bind-row" style="justify-content:center; margin-top:10px; width:100%;">
+                        <button onclick="startMobileLayoutEditor()" style="width:100%; background:#2a2a8b;"><i class="fa-solid fa-arrows-up-down-left-right"></i> Customize Mobile UI Layout</button>
+                    </div>
                 </div>
 
                 <div id="set-tab-graphics" class="set-tab-content hidden">
@@ -376,24 +379,38 @@
 
         <!-- Mobile Controls -->
         <div id="mobile-controls" class="hidden">
-            <div id="mc-dpad">
-                <button id="btn-up" class="mc-btn mc-dir"><i class="fa-solid fa-caret-up"></i></button>
-                <div class="mc-dpad-middle">
-                    <button id="btn-left" class="mc-btn mc-dir"><i class="fa-solid fa-caret-left"></i></button>
-                    <div class="mc-dpad-center"></div>
-                    <button id="btn-right" class="mc-btn mc-dir"><i class="fa-solid fa-caret-right"></i></button>
+            <!-- Top Buttons -->
+            <button id="btn-pause" class="mc-btn mc-top" data-id="pause" style="top:20px; right:20px;"><i class="fa-solid fa-pause"></i></button>
+            <button id="btn-inventory" class="mc-btn mc-top" data-id="inventory" style="top:20px; right:90px;"><i class="fa-solid fa-briefcase"></i></button>
+            <button id="btn-camera" class="mc-btn mc-top" data-id="camera" style="top:20px; right:160px;"><i class="fa-solid fa-video"></i></button>
+            <button id="btn-dev" class="mc-btn mc-top hidden" data-id="dev" style="top:20px; right:230px; background:rgba(139,0,0,0.6);"><i class="fa-solid fa-wrench"></i></button>
+
+            <!-- D-Pad -->
+            <button id="btn-up" class="mc-btn mc-dir" data-id="up" style="bottom:90px; left:90px;"><i class="fa-solid fa-caret-up"></i></button>
+            <button id="btn-left" class="mc-btn mc-dir" data-id="left" style="bottom:20px; left:20px;"><i class="fa-solid fa-caret-left"></i></button>
+            <button id="btn-right" class="mc-btn mc-dir" data-id="right" style="bottom:20px; left:160px;"><i class="fa-solid fa-caret-right"></i></button>
+            <button id="btn-down" class="mc-btn mc-dir" data-id="down" style="bottom:20px; left:90px;"><i class="fa-solid fa-caret-down"></i></button>
+
+            <!-- Action Buttons -->
+            <button id="btn-interact" class="mc-btn mc-act" data-id="interact" style="bottom:90px; right:90px;"><i class="fa-solid fa-hand"></i></button>
+            <button id="btn-reload" class="mc-btn mc-act" data-id="reload" style="bottom:90px; right:20px;"><i class="fa-solid fa-arrows-rotate"></i></button>
+            <button id="btn-shoot" class="mc-btn mc-act" data-id="shoot" style="bottom:20px; right:90px;"><i class="fa-solid fa-crosshairs"></i></button>
+            <button id="btn-jump" class="mc-btn mc-act" data-id="jump" style="bottom:20px; right:20px;"><i class="fa-solid fa-angles-up"></i></button>
+        </div>
+
+        <!-- Mobile Layout Editor Overlay -->
+        <div id="mobile-layout-editor" class="hidden" style="position:absolute; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,50,0.5); z-index:140; display:flex; flex-direction:column; justify-content:center; align-items:center; pointer-events:auto;">
+            <div style="background:rgba(0,0,0,0.8); padding:15px; border-radius:10px; border:2px solid #0df; text-align:center; pointer-events:none; margin-bottom: 200px;">
+                <h2 style="color:#0df; margin:0 0 10px 0;">UI LAYOUT EDITOR</h2>
+                <p style="color:#fff;">Seret (Drag) tombol untuk memindahkannya.</p>
+                <div style="margin-top:10px; display:flex; gap:10px; justify-content:center;">
+                    <label style="color:#fff;">Skala Tombol:</label>
+                    <input type="range" id="mc-scale-slider" min="0.5" max="2.0" step="0.1" value="1.0" style="pointer-events:auto;">
                 </div>
-                <button id="btn-down" class="mc-btn mc-dir"><i class="fa-solid fa-caret-down"></i></button>
             </div>
-            <div id="mc-actions">
-                <div class="mc-act-row">
-                    <button id="btn-interact" class="mc-btn mc-act"><i class="fa-solid fa-hand"></i></button>
-                    <button id="btn-reload" class="mc-btn mc-act"><i class="fa-solid fa-arrows-rotate"></i></button>
-                </div>
-                <div class="mc-act-row">
-                    <button id="btn-shoot" class="mc-btn mc-act"><i class="fa-solid fa-crosshairs"></i></button>
-                    <button id="btn-jump" class="mc-btn mc-act"><i class="fa-solid fa-angles-up"></i></button>
-                </div>
+            <div style="position:absolute; bottom:30px; display:flex; gap:20px;">
+                <button onclick="resetMobileLayout()" style="background:#8b0000; pointer-events:auto;"><i class="fa-solid fa-rotate-left"></i> Reset Default</button>
+                <button onclick="saveMobileLayout()" style="background:#005500; border-color:#0f0; pointer-events:auto;"><i class="fa-solid fa-check"></i> Selesai & Simpan</button>
             </div>
         </div>
 

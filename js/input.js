@@ -200,4 +200,71 @@ function initInput(){
     bindTouch('btn-shoot', () => keys.shoot=1, () => keys.shoot=0);
     bindTouch('btn-reload', () => { if(!keys.reload) keys.rpressed=1; keys.reload=1; }, () => keys.reload=0);
     bindTouch('btn-interact', () => { if(!keys.interact) keys.ipressed=1; keys.interact=1; }, () => keys.interact=0);
+    
+    // New buttons
+    bindTouch('btn-pause', () => { if(typeof togglePause === 'function') togglePause(); }, () => {});
+    bindTouch('btn-inventory', () => { if(typeof toggleInventory === 'function') toggleInventory(); }, () => {});
+    bindTouch('btn-camera', () => { 
+        if(typeof camZoomTarget !== 'undefined') {
+            camZoomTarget = (camZoomTarget > 1.0) ? 0.8 : 1.5;
+        }
+    }, () => {});
+    bindTouch('btn-dev', () => { 
+        if(typeof toggleDevMode === 'function') toggleDevMode(!devMenuEnabled); 
+    }, () => {});
+
+    // Free Aim Mechanic
+    let aimTouchId = null;
+    const gameContainer = document.getElementById('game-container');
+
+    function updateMousePosFromTouch(touch) {
+        if(!touch) return;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        mouseX = (touch.clientX - rect.left) * scaleX;
+        mouseY = (touch.clientY - rect.top) * scaleY;
+    }
+
+    gameContainer.addEventListener('touchstart', (e) => {
+        if(e.target.closest('.mc-btn') || e.target.closest('#mobile-layout-editor')) return; // Ignore if touching a button or editor
+        if (gameState === 'PLAY') {
+            for(let i=0; i<e.changedTouches.length; i++) {
+                const t = e.changedTouches[i];
+                if(!t.target.closest('.mc-btn') && aimTouchId === null) {
+                    aimTouchId = t.identifier;
+                    updateMousePosFromTouch(t);
+                    keys.shoot = 1;
+                }
+            }
+        }
+    }, {passive: false});
+    
+    gameContainer.addEventListener('touchmove', (e) => {
+        if (gameState === 'PLAY' && aimTouchId !== null) {
+            for(let i=0; i<e.changedTouches.length; i++) {
+                const t = e.changedTouches[i];
+                if(t.identifier === aimTouchId) {
+                    updateMousePosFromTouch(t);
+                    e.preventDefault(); // Prevent scrolling while aiming
+                }
+            }
+        }
+    }, {passive: false});
+
+    const handleAimTouchEnd = (e) => {
+        if(aimTouchId !== null) {
+            for(let i=0; i<e.changedTouches.length; i++) {
+                if(e.changedTouches[i].identifier === aimTouchId) {
+                    aimTouchId = null;
+                    const shootBtn = document.getElementById('btn-shoot');
+                    if(!shootBtn || !shootBtn.classList.contains('active')) {
+                        keys.shoot = 0;
+                    }
+                }
+            }
+        }
+    };
+    gameContainer.addEventListener('touchend', handleAimTouchEnd, {passive: false});
+    gameContainer.addEventListener('touchcancel', handleAimTouchEnd, {passive: false});
 }

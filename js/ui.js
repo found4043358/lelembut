@@ -52,10 +52,20 @@ function setMenu(id){
         canvas.style.filter = _baseCanvasFilter;
     }
     
+    // Hide mobile controls by default on menu changes
+    const mc = document.getElementById('mobile-controls');
+    if(mc) mc.classList.add('hidden');
+
     if(id==='game'){
         gameState='PLAY';
         document.getElementById('ui-layer').classList.remove('hidden');
         document.body.classList.add('playing');
+        
+        // Re-show mobile controls if enabled
+        const isForce = document.getElementById('set-force-mobile') && document.getElementById('set-force-mobile').checked;
+        if(isForce || 'ontouchstart' in window || navigator.maxTouchPoints > 0) {
+            if(mc) mc.classList.remove('hidden');
+        }
     } else if(id==='editor-ui'){
         gameState='EDITOR';
         // Also clear filter for editor
@@ -106,10 +116,21 @@ function togglePause(){
             if (devMode) peBtn.classList.remove('hidden');
             else peBtn.classList.add('hidden');
         }
+        
+        // Hide mobile controls
+        const mc = document.getElementById('mobile-controls');
+        if(mc) mc.classList.add('hidden');
     } else if (gameState==='PAUSE'){
         gameState='PLAY';
         document.getElementById('pause-menu').classList.add('hidden');
         canvas.style.filter = _baseCanvasFilter;
+        
+        // Show mobile controls
+        const mc = document.getElementById('mobile-controls');
+        const isForce = document.getElementById('set-force-mobile') && document.getElementById('set-force-mobile').checked;
+        if(isForce || 'ontouchstart' in window || navigator.maxTouchPoints > 0) {
+            if(mc) mc.classList.remove('hidden');
+        }
     }
 }
 
