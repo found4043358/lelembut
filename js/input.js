@@ -231,6 +231,8 @@ function initInput(){
             const btnAim = document.getElementById('btn-aim');
             if(btnAim) btnAim.style.backgroundColor = aimMode === 'mouse' ? 'rgba(139,0,0,0.6)' : '';
             if(typeof updateHUD === 'function') updateHUD();
+            const mc = document.getElementById('mobile-crosshair');
+            if(mc && aimMode !== 'mouse') mc.classList.add('hidden');
         }
     }, () => {});
     
@@ -277,6 +279,9 @@ function initInput(){
         const mc = document.getElementById('mobile-crosshair');
         if (mc && aimMode === 'mouse') {
             mc.classList.remove('hidden');
+            mc.style.color = '#ff0000';
+            mc.style.opacity = '0.8';
+            mc.style.transition = 'none';
             mc.style.left = touch.clientX + 'px';
             mc.style.top = touch.clientY + 'px';
         }
@@ -318,7 +323,11 @@ function initInput(){
                         if(aimShoots) keys.shoot = 0;
                     }
                     const mc = document.getElementById('mobile-crosshair');
-                    if(mc) mc.classList.add('hidden');
+                    if(mc) {
+                        mc.style.color = '#ffffff';
+                        mc.style.opacity = '0.4';
+                        mc.style.transition = 'color 0.2s, opacity 0.2s';
+                    }
                 }
             }
         }
