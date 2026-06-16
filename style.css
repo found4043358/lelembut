@@ -135,3 +135,81 @@ button.ed-btn.active{background:#ff2222;color:#fff;border-color:#ff0000;text-sha
 /* Toast */
 #toast{position:absolute;top:70px;left:50%;transform:translateX(-50%);background:rgba(0,100,0,0.9);color:#fff;padding:10px 20px;border-radius:4px;z-index:200;transition:opacity 0.3s}
 ::-webkit-scrollbar { display: none; }
+
+/* Mobile Controls */
+#mobile-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    height: auto;
+    z-index: 150;
+    pointer-events: none;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+
+#mobile-controls:not(.hidden) {
+    display: flex; /* Override hidden */
+}
+
+.mc-btn {
+    background: rgba(40, 40, 40, 0.6);
+    color: rgba(255, 255, 255, 0.8);
+    border: 2px solid rgba(100, 100, 100, 0.5);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: auto;
+    user-select: none;
+    touch-action: manipulation;
+    min-width: unset;
+    margin: 0;
+    padding: 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    transition: background 0.1s, transform 0.1s, border-color 0.1s;
+}
+
+.mc-btn:active, .mc-btn.active {
+    background: rgba(139, 0, 0, 0.8);
+    border-color: #ff0000;
+    transform: scale(0.95);
+    box-shadow: 0 0 15px rgba(255,0,0,0.6);
+    color: #fff;
+}
+
+#mc-dpad {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.mc-dpad-middle {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.mc-dpad-center {
+    width: 60px;
+    height: 60px;
+}
+
+#mc-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 15px;
+    justify-content: flex-end;
+}
+
+.mc-act-row {
+    display: flex;
+    gap: 15px;
+}

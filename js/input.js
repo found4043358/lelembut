@@ -163,5 +163,41 @@ function initInput(){
         if(e.code===binds.reload) keys.reload=0;
         if(e.code===binds.interact) keys.interact=0;
     };
-}
 
+    // Mobile Touch Controls
+    const mobileControls = document.getElementById('mobile-controls');
+    if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+        if(mobileControls) mobileControls.classList.remove('hidden');
+    }
+
+    const bindTouch = (id, actionDown, actionUp) => {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        btn.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scroll/zoom
+            btn.classList.add('active');
+            actionDown();
+        }, {passive: false});
+        
+        btn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            btn.classList.remove('active');
+            actionUp();
+        }, {passive: false});
+
+        btn.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            btn.classList.remove('active');
+            actionUp();
+        }, {passive: false});
+    };
+
+    bindTouch('btn-left', () => keys.l=1, () => keys.l=0);
+    bindTouch('btn-right', () => keys.r=1, () => keys.r=0);
+    bindTouch('btn-up', () => keys.u=1, () => keys.u=0);
+    bindTouch('btn-down', () => keys.d=1, () => keys.d=0);
+    bindTouch('btn-jump', () => { if(!keys.jump) keys.jpressed=1; keys.jump=1; }, () => keys.jump=0);
+    bindTouch('btn-shoot', () => keys.shoot=1, () => keys.shoot=0);
+    bindTouch('btn-reload', () => { if(!keys.reload) keys.rpressed=1; keys.reload=1; }, () => keys.reload=0);
+    bindTouch('btn-interact', () => { if(!keys.interact) keys.ipressed=1; keys.interact=1; }, () => keys.interact=0);
+}

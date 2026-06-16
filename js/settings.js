@@ -12,7 +12,8 @@ function saveGraphicsSettings(){
         sat: document.getElementById('gfx-sat').value,
         con: document.getElementById('gfx-con').value,
         bri: document.getElementById('gfx-bri').value,
-        devMenuEnabled: document.getElementById('set-devmode').checked
+        devMenuEnabled: document.getElementById('set-devmode').checked,
+        forceMobileControls: document.getElementById('set-force-mobile').checked
     };
     
     fetch('api.php?action=settings_save', {
@@ -37,6 +38,7 @@ function loadSettings(){
                 document.getElementById('gfx-con').value = s.con || 1;
                 document.getElementById('gfx-bri').value = s.bri || 1;
                 document.getElementById('set-devmode').checked = s.devMenuEnabled || false;
+                document.getElementById('set-force-mobile').checked = s.forceMobileControls || false;
                 
                 // Apply immediately
                 toggleCRT(s.crt);
@@ -44,6 +46,7 @@ function loadSettings(){
                 changeResolution(s.resolusi);
                 updateGraphicsFilter();
                 toggleDevMode(s.devMenuEnabled || false);
+                toggleForceMobileControls(s.forceMobileControls || false);
             }
             isSettingsLoading = false;
         }).catch(e => { console.error("Error loading settings:", e); isSettingsLoading = false; });
@@ -75,6 +78,19 @@ function toggleDevMode(isOn){
     }
     saveGraphicsSettings();
 }
+
+function toggleForceMobileControls(isOn){
+    const mc = document.getElementById('mobile-controls');
+    if(mc){
+        if(isOn || 'ontouchstart' in window || navigator.maxTouchPoints > 0) {
+            mc.classList.remove('hidden');
+        } else {
+            mc.classList.add('hidden');
+        }
+    }
+    saveGraphicsSettings();
+}
+
 
 // Load settings on boot
 window.addEventListener('load', () => {

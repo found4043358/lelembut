@@ -169,6 +169,9 @@
                     <div class="bind-row"><span>Interact:</span> <button id="bind-interact" onclick="rebind('interact')">E</button></div>
                     <div class="bind-row"><span>Toggle Aim:</span> <button id="bind-toggleAim" onclick="rebind('toggleAim')">Q</button></div>
                     <div class="bind-row"><span>Toggle Light:</span> <button id="bind-toggleLight" onclick="rebind('toggleLight')">L</button></div>
+                    <div class="bind-row" style="justify-content:flex-start; gap:10px; margin-top:15px; border-top:1px solid #445; padding-top:10px; width:100%;">
+                        <input type="checkbox" id="set-force-mobile" onchange="toggleForceMobileControls(this.checked)"> <label for="set-force-mobile">Force On-Screen Buttons</label>
+                    </div>
                 </div>
 
                 <div id="set-tab-graphics" class="set-tab-content hidden">
@@ -368,6 +371,29 @@
             <div id="editor-footer" style="position:absolute; bottom:50px; left:50%; transform:translateX(-50%); display:flex; gap:15px; align-items:center; z-index:100; pointer-events:none;">
                 <button class="ed-btn" onclick="setEdTool('select')" title="Select Tool" style="pointer-events:auto; padding:12px 24px; background:rgba(40,40,40,0.9); color:#fff; border-radius:25px; font-size:20px; border:2px solid #666; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.5); transition:transform 0.1s;"><i class="fa-solid fa-arrow-pointer"></i></button>
                 <button class="ed-btn" onclick="setEdTool(0)" title="Erase Tool" style="pointer-events:auto; padding:12px 24px; background:rgba(40,40,40,0.9); color:#fff; border-radius:25px; font-size:20px; border:2px solid #666; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.5); transition:transform 0.1s;"><i class="fa-solid fa-eraser"></i></button>
+            </div>
+        </div>
+
+        <!-- Mobile Controls -->
+        <div id="mobile-controls" class="hidden">
+            <div id="mc-dpad">
+                <button id="btn-up" class="mc-btn mc-dir"><i class="fa-solid fa-caret-up"></i></button>
+                <div class="mc-dpad-middle">
+                    <button id="btn-left" class="mc-btn mc-dir"><i class="fa-solid fa-caret-left"></i></button>
+                    <div class="mc-dpad-center"></div>
+                    <button id="btn-right" class="mc-btn mc-dir"><i class="fa-solid fa-caret-right"></i></button>
+                </div>
+                <button id="btn-down" class="mc-btn mc-dir"><i class="fa-solid fa-caret-down"></i></button>
+            </div>
+            <div id="mc-actions">
+                <div class="mc-act-row">
+                    <button id="btn-interact" class="mc-btn mc-act"><i class="fa-solid fa-hand"></i></button>
+                    <button id="btn-reload" class="mc-btn mc-act"><i class="fa-solid fa-arrows-rotate"></i></button>
+                </div>
+                <div class="mc-act-row">
+                    <button id="btn-shoot" class="mc-btn mc-act"><i class="fa-solid fa-crosshairs"></i></button>
+                    <button id="btn-jump" class="mc-btn mc-act"><i class="fa-solid fa-angles-up"></i></button>
+                </div>
             </div>
         </div>
 
