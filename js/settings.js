@@ -107,13 +107,19 @@ function applyMobileLayout() {
     if(saved) {
         mcLayoutData = JSON.parse(saved);
         const scale = mcLayoutData.scale || 1.0;
+        const opacity = mcLayoutData.opacity !== undefined ? mcLayoutData.opacity : 0.6;
+        
         const slider = document.getElementById('mc-scale-slider');
         if(slider) slider.value = scale;
         
+        const opacitySlider = document.getElementById('mc-opacity-slider');
+        if(opacitySlider) opacitySlider.value = opacity;
+        
         document.querySelectorAll('.mc-btn').forEach(btn => {
             const id = btn.id;
-            // Apply scale
+            // Apply scale and opacity
             btn.style.transform = `scale(${scale})`;
+            btn.style.opacity = opacity;
             
             // Apply position if exists
             if(mcLayoutData[id]) {
@@ -156,6 +162,16 @@ function startMobileLayoutEditor() {
             });
         };
     }
+    
+    const opacitySlider = document.getElementById('mc-opacity-slider');
+    if(opacitySlider) {
+        opacitySlider.oninput = (e) => {
+            const val = e.target.value;
+            document.querySelectorAll('.mc-btn').forEach(b => {
+                b.style.opacity = val;
+            });
+        };
+    }
 }
 
 let draggedBtn = null;
@@ -195,6 +211,9 @@ function saveMobileLayout() {
     const data = {};
     const slider = document.getElementById('mc-scale-slider');
     data.scale = slider ? parseFloat(slider.value) : 1.0;
+    
+    const opacitySlider = document.getElementById('mc-opacity-slider');
+    data.opacity = opacitySlider ? parseFloat(opacitySlider.value) : 0.6;
     
     document.querySelectorAll('.mc-btn').forEach(btn => {
         btn.classList.remove('edit-mode');

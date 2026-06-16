@@ -222,11 +222,27 @@ function initInput(){
 
     function updateMousePosFromTouch(touch) {
         if(!touch) return;
+        window.rawMouseX = touch.clientX;
+        window.rawMouseY = touch.clientY;
         const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        mouseX = (touch.clientX - rect.left) * scaleX;
-        mouseY = (touch.clientY - rect.top) * scaleY;
+        const dpr = window.devicePixelRatio || 1;
+        const cssX = touch.clientX - rect.left;
+        const cssY = touch.clientY - rect.top;
+        const canvasX = cssX * dpr;
+        const canvasY = cssY * dpr;
+        
+        let mx = (canvasX - DRAW_OFFSET_X) / DRAW_SCALE;
+        let my = (canvasY - DRAW_OFFSET_Y) / DRAW_SCALE;
+        
+        if (typeof camZoom !== 'undefined' && camZoom !== 1 && typeof player !== 'undefined' && gameState === 'PLAY') {
+            const zx = player.x + player.w/2 - cam.x;
+            const zy = player.y + player.h/2 - cam.y;
+            mx = (mx - zx) / camZoom + zx;
+            my = (my - zy) / camZoom + zy;
+        }
+        
+        mouseX = mx;
+        mouseY = my;
     }
 
     gameContainer.addEventListener('touchstart', (e) => {
