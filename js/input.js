@@ -213,7 +213,15 @@ function initInput(){
         }
     }, () => {});
     bindTouch('btn-dev', () => { 
-        if(typeof toggleDevMode === 'function') toggleDevMode(!devMenuEnabled); 
+        if(typeof devMenuEnabled !== 'undefined' && devMenuEnabled) {
+            if(typeof devMode !== 'undefined') devMode = !devMode;
+        }
+    }, () => {});
+    bindTouch('btn-aim', () => {
+        if(typeof aimMode !== 'undefined') {
+            aimMode = aimMode === 'keyboard' ? 'mouse' : 'keyboard';
+            if(typeof updateHUD === 'function') updateHUD();
+        }
     }, () => {});
 
     // Free Aim Mechanic
