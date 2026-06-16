@@ -205,8 +205,11 @@ function initInput(){
     bindTouch('btn-pause', () => { if(typeof togglePause === 'function') togglePause(); }, () => {});
     bindTouch('btn-inventory', () => { if(typeof toggleInventory === 'function') toggleInventory(); }, () => {});
     bindTouch('btn-camera', () => { 
-        if(typeof camZoomTarget !== 'undefined') {
-            camZoomTarget = (camZoomTarget > 1.0) ? 0.8 : 1.5;
+        if(typeof zoomState !== 'undefined') {
+            zoomState = (zoomState + 1) % 3;
+            if(zoomState===0) camZoomTarget = 1;
+            else if(zoomState===1) camZoomTarget = 1.4;
+            else if(zoomState===2) camZoomTarget = 1.2;
         }
     }, () => {});
     bindTouch('btn-dev', () => { 

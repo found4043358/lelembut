@@ -136,10 +136,10 @@ function startMobileLayoutEditor() {
     
     document.querySelectorAll('.mc-btn').forEach(btn => {
         btn.classList.add('edit-mode');
-        // Convert to top/left pixel values so dragging is easy
+        // Convert to percentage values so it works across different screen sizes
         const rect = btn.getBoundingClientRect();
-        btn.style.left = rect.left + 'px';
-        btn.style.top = rect.top + 'px';
+        btn.style.left = (rect.left / window.innerWidth * 100) + '%';
+        btn.style.top = (rect.top / window.innerHeight * 100) + '%';
         btn.style.right = 'auto';
         btn.style.bottom = 'auto';
         
@@ -178,8 +178,10 @@ function doDragBtn(e) {
     if(!draggedBtn) return;
     let x = e.clientX - dragOffsetX;
     let y = e.clientY - dragOffsetY;
-    draggedBtn.style.left = x + 'px';
-    draggedBtn.style.top = y + 'px';
+    let pctX = (x / window.innerWidth) * 100;
+    let pctY = (y / window.innerHeight) * 100;
+    draggedBtn.style.left = pctX + '%';
+    draggedBtn.style.top = pctY + '%';
 }
 
 function stopDragBtn(e) {
