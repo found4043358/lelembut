@@ -389,7 +389,7 @@
         <div id="mobile-controls" class="hidden">
             <!-- Top Buttons -->
             <button id="btn-pause" class="mc-btn mc-top" data-id="pause" style="top:20px; right:20px; transform: scale(0.7); transform-origin: top right;"><i class="fa-solid fa-pause"></i></button>
-            <button id="btn-camera" class="mc-btn mc-top" data-id="camera" style="top:20px; right:90px;"><i class="fa-solid fa-video"></i></button>
+            <button id="btn-camera" class="mc-btn mc-top" data-id="camera" style="top:20px; right:90px; transform: scale(0.7); transform-origin: top right;"><i class="fa-solid fa-video"></i></button>
             <button id="btn-dev" class="mc-btn mc-top hidden" data-id="dev" style="top:20px; right:160px; background:rgba(139,0,0,0.6);"><i class="fa-solid fa-wrench"></i></button>
 
             <!-- D-Pad -->
@@ -404,7 +404,7 @@
             </div>
 
             <!-- Action Buttons -->
-            <button id="btn-light" class="mc-btn mc-top" data-id="light" style="bottom:190px; left:20px;"><i class="fa-solid fa-lightbulb"></i></button>
+            <button id="btn-shoot-left" class="mc-btn mc-act" data-id="shoot-left" style="bottom:190px; left:20px;"><i class="fa-solid fa-crosshairs"></i></button>
             <button id="btn-interact" class="mc-btn mc-act hidden" data-id="interact" style="bottom:170px; right:100px;"><i class="fa-solid fa-hand"></i></button>
             <button id="btn-reload" class="mc-btn mc-act" data-id="reload" style="bottom:170px; right:20px;"><i class="fa-solid fa-arrows-rotate"></i></button>
             <button id="btn-aim" class="mc-btn mc-act" data-id="aim" style="bottom:100px; right:20px;"><i class="fa-solid fa-bullseye"></i></button>
@@ -415,8 +415,13 @@
                 </div>
             </button>
             <button id="btn-shoot" class="mc-btn mc-act" data-id="shoot" style="bottom:20px; right:100px;"><i class="fa-solid fa-crosshairs"></i></button>
-            <button id="btn-shoot-left" class="mc-btn mc-act" data-id="shoot-left" style="bottom:20px; left:230px;"><i class="fa-solid fa-crosshairs"></i></button>
+            <button id="btn-light" class="mc-btn mc-top" data-id="light" style="bottom:20px; left:230px; transform: scale(0.7); transform-origin: bottom left;"><i class="fa-solid fa-lightbulb"></i></button>
             <button id="btn-jump" class="mc-btn mc-act" data-id="jump" style="bottom:20px; right:20px; width:70px; height:70px; font-size:30px;"><i class="fa-solid fa-arrow-up"></i></button>
+            
+            <!-- Mobile Crosshair -->
+            <div id="mobile-crosshair" class="hidden" style="position:absolute; width:40px; height:40px; pointer-events:none; z-index:160; transform:translate(-50%,-50%); display:flex; justify-content:center; align-items:center; color:#ff0000; font-size:24px; opacity:0.7;">
+                <i class="fa-solid fa-crosshairs"></i>
+            </div>
         </div>
 
         <!-- Mobile Layout Editor Overlay -->

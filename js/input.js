@@ -208,7 +208,7 @@ function initInput(){
             player.flashlightOn = !player.flashlightOn;
             if(typeof Audio !== 'undefined' && Audio.pick) Audio.pick();
             const btn = document.getElementById('btn-light');
-            if(btn) btn.style.backgroundColor = player.flashlightOn ? 'rgba(0,255,0,0.6)' : '';
+            if(btn) btn.style.backgroundColor = player.flashlightOn ? 'rgba(139,0,0,0.6)' : '';
         }
     }, () => {});
     bindTouch('btn-pause', () => { if(typeof togglePause === 'function') togglePause(); }, () => {});
@@ -273,6 +273,13 @@ function initInput(){
         
         mouseX = mx;
         mouseY = my;
+        
+        const mc = document.getElementById('mobile-crosshair');
+        if (mc && aimMode === 'mouse') {
+            mc.classList.remove('hidden');
+            mc.style.left = touch.clientX + 'px';
+            mc.style.top = touch.clientY + 'px';
+        }
     }
 
     gameContainer.addEventListener('touchstart', (e) => {
@@ -308,12 +315,15 @@ function initInput(){
                     aimTouchId = null;
                     const shootBtn = document.getElementById('btn-shoot');
                     if(!shootBtn || !shootBtn.classList.contains('active')) {
-                        keys.shoot = 0;
+                        if(aimShoots) keys.shoot = 0;
                     }
+                    const mc = document.getElementById('mobile-crosshair');
+                    if(mc) mc.classList.add('hidden');
                 }
             }
         }
     };
+
     gameContainer.addEventListener('touchend', handleAimTouchEnd, {passive: false});
     gameContainer.addEventListener('touchcancel', handleAimTouchEnd, {passive: false});
 
