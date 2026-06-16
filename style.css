@@ -34,7 +34,10 @@ canvas{display:block;}
 .hidden{display:none!important}
 
 /* Menus */
-.overlay-menu{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(5,0,0,0.85);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100}
+.overlay-menu{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(5,0,0,0.85);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100;
+transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease; opacity: 1; visibility: visible; transform: scale(1);}
+.overlay-menu.hidden{display:flex !important; opacity:0; visibility:hidden; transform: scale(1.05); pointer-events:none;
+transition: opacity 0.3s ease, visibility 0.3s ease, transform 0s ease 0.3s;}
 .game-title{font-size:64px;color:#8b0000;text-shadow:0 0 10px #ff0000;margin-bottom:40px;letter-spacing:4px}
 h2{font-size:32px;color:#8b0000;margin-bottom:20px}
 
@@ -48,7 +51,7 @@ button:active{transform:translateY(1px);box-shadow:0 0 5px rgba(255,0,0,0.4);}
 .bind-row button{min-width:100px;padding:5px}
 
 /* List Container */
-.list-container{max-height:300px;overflow-y:auto;width:100%;max-width:480px;margin-bottom:20px;}
+.list-container{max-height:50vh;overflow-y:auto;width:90%;max-width:480px;margin-bottom:20px;}
 .level-item{display:flex;justify-content:space-between;align-items:center;background:#111;border:1px solid #333;padding:10px;margin-bottom:5px;cursor:default}
 .level-item span{font-size: 18px;}
 .level-item .actions{display:flex; gap: 5px;}
@@ -153,9 +156,9 @@ button.ed-btn.active{background:#ff2222;color:#fff;border-color:#ff0000;text-sha
 
 .mc-btn {
     position: absolute;
-    background: rgba(40, 40, 40, 0.6);
-    color: rgba(255, 255, 255, 0.8);
-    border: 2px solid rgba(100, 100, 100, 0.5);
+    background: rgba(40, 40, 40, 0.3);
+    color: rgba(255, 255, 255, 0.5);
+    border: 2px solid rgba(100, 100, 100, 0.3);
     border-radius: 50%;
     width: 60px;
     height: 60px;
@@ -170,16 +173,19 @@ button.ed-btn.active{background:#ff2222;color:#fff;border-color:#ff0000;text-sha
     margin: 0;
     padding: 0;
     box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    transition: background 0.1s, border-color 0.1s;
-    transform: translate(-50%, 50%); /* Centers the button on its bottom/left or top/right origin depending on dragging but let's just use top/left for ease of JS, wait no let's not use translate here if we want simple top/left drag */
+    transition: background 0.1s, border-color 0.1s, transform 0.1s;
     transform: none;
 }
 
 .mc-btn:active, .mc-btn.active {
+    transform: scale(0.85) !important;
     background: rgba(139, 0, 0, 0.8);
     border-color: #ff0000;
     box-shadow: 0 0 15px rgba(255,0,0,0.6);
     color: #fff;
+}
+.mc-btn.mc-top:active, .mc-btn.mc-top.active {
+    transform: scale(0.6) !important;
 }
 
 /* Layout Editor Styles */
@@ -208,4 +214,11 @@ button.ed-btn.active{background:#ff2222;color:#fff;border-color:#ff0000;text-sha
 @media (max-width: 768px) {
     #inventory-menu { justify-content: flex-end; }
     #inv-container { transform: scale(0.85); transform-origin: right center; margin-right: 20px; }
+    #inv-grid { grid-template-columns: repeat(3, 1fr); max-height:60vh; overflow-y:auto; padding-right:10px; }
+}
+
+@media (max-height: 450px) {
+    .game-title { font-size: 42px; margin-bottom: 15px; }
+    button { padding: 5px 15px; margin: 3px; font-size: 15px; min-width: 160px; }
+    h2 { font-size: 24px; margin-bottom: 10px; }
 }

@@ -18,12 +18,14 @@
         <!-- Play HUD -->
         <div id="ui-layer" class="hidden">
             <div id="hud-left">
-                <div class="hud-item"><span class="hud-icon"><i class="fa-solid fa-heart" style="color:#ff3366;"></i></span><div id="hp-bg"><div id="hp-bar"></div></div></div>
-                <div class="hud-item" style="font-size: 24px; color: #fff;"><i class="fa-solid fa-battery-full" id="battery-icon"></i></div>
-                <div class="hud-item" id="lungs-container" style="display:none; font-size: 24px; color: #fff;"><i class="fa-solid fa-lungs" id="lungs-icon"></i></div>
-                <div class="hud-item" id="nv-container" style="display:none; font-size: 24px; color: #0f0;"><i class="fa-solid fa-glasses"></i></div>
+                <div class="hud-item"><span class="hud-icon"><i class="fa-solid fa-heart" style="color:#ff0000;"></i></span><div id="hp-bg"><div id="hp-bar"></div></div></div>
+                <div class="hud-item" style="font-size: 24px; color: #fff; gap: 12px;">
+                    <i class="fa-solid fa-battery-full" id="battery-icon"></i>
+                    <span id="lungs-container" style="display:none;"><i class="fa-solid fa-lungs" id="lungs-icon"></i></span>
+                    <span id="nv-container" style="display:none; color: #0f0;"><i class="fa-solid fa-glasses"></i></span>
+                    <span id="aim-lock-icon" style="display:none; color:#ffaa00;"><span class="hud-icon"><i class="fa-solid fa-crosshairs"></i></span><span id="aim-dir-txt" style="font-size:16px;"></span></span>
+                </div>
                 <div class="hud-item"><span class="hud-icon"><i class="fa-solid fa-person-rifle"></i></span><span id="ammo-txt" style="display:inline-block; transition: transform 0.2s;">10/40</span> <i id="reload-icon" class="fa-solid fa-arrows-rotate fa-spin hidden" style="margin-left:8px; font-size:14px; color:#ffcc00;"></i><i id="mag-empty-icon" class="fa-solid fa-triangle-exclamation blink hidden" style="margin-left:8px; font-size:14px; color:#ff3333;"></i></div>
-                <div class="hud-item" id="aim-lock-icon" style="display:none; color:#ffaa00;"><span class="hud-icon"><i class="fa-solid fa-crosshairs"></i></span><span id="aim-dir-txt"></span></div>
             </div>
             <div id="room-label" class="hidden"></div>
             <div id="prompt-box" class="hidden">Tekan E</div>
@@ -62,7 +64,8 @@
             <button onclick="transitionTo('level-select')"><i class="fa-solid fa-play"></i> Play Game</button>
             <button onclick="transitionTo('editor-select')"><i class="fa-solid fa-hammer"></i> Map Editor</button>
             <button onclick="openSettings('main-menu')"><i class="fa-solid fa-gear"></i> Settings</button>
-            <button id="dev-menu-btn" onclick="transitionTo('dev-menu')" class="hidden" style="background:#8b0000; margin-top:20px;"><i class="fa-solid fa-wrench"></i> Dev Menu</button>
+            <button id="btn-main-fullscreen" class="hidden" onclick="toggleFullscreen()"><i class="fa-solid fa-expand"></i> FULLSCREEN</button>
+            <button id="dev-menu-btn" onclick="transitionTo('dev-menu')" class="hidden" style="background:#8b0000; margin-top:10px;"><i class="fa-solid fa-wrench"></i> Dev Menu</button>
         </div>
 
         <!-- Pause Menu -->
@@ -229,6 +232,9 @@
                     <div class="bind-row" style="justify-content:flex-start; gap:10px;">
                         <input type="checkbox" id="set-devmode" onchange="toggleDevMode(this.checked)"> <label for="set-devmode">Enable Dev Mode</label>
                     </div>
+                    <div class="bind-row" style="justify-content:flex-start; gap:10px;">
+                        <input type="checkbox" id="set-force-fs" onchange="toggleForceMenuFullscreen(this.checked)"> <label for="set-force-fs">Force Menu Fullscreen Button</label>
+                    </div>
                     <p style="color:#888; text-align:center; padding:10px; font-size:12px;">Enables the Dev Menu on the main screen for advanced configuration.</p>
                 </div>
 
@@ -319,6 +325,7 @@
                             <button class="ed-btn" onclick="setEdTool('spawn')"><i class="fa-solid fa-flag"></i> Spawn</button>
                             <button class="ed-btn" onclick="setEdTool('enemy')"><i class="fa-solid fa-skull"></i> Enemy</button>
                             <button class="ed-btn" onclick="setEdTool('kuyang')"><i class="fa-solid fa-ghost"></i> Kuyang</button>
+                            <button class="ed-btn" onclick="setEdTool('stalker')"><i class="fa-solid fa-user-ninja" style="color:red;"></i> Stalker</button>
                             <button class="ed-btn" onclick="setEdTool('door')"><i class="fa-solid fa-door-open"></i> Door</button>
                             <button class="ed-btn" onclick="setEdTool('check')"><i class="fa-solid fa-location-dot"></i> Check</button>
                             <button class="ed-btn" onclick="setEdTool('end')"><i class="fa-solid fa-trophy"></i> Goal</button>
@@ -389,8 +396,6 @@
         <div id="mobile-controls" class="hidden">
             <!-- Top Buttons -->
             <button id="btn-pause" class="mc-btn mc-top" data-id="pause" style="top:20px; right:20px; transform: scale(0.7); transform-origin: top right;"><i class="fa-solid fa-pause"></i></button>
-            <button id="btn-camera" class="mc-btn mc-top" data-id="camera" style="top:20px; right:65px; transform: scale(0.7); transform-origin: top right;"><i class="fa-solid fa-video"></i></button>
-            <button id="btn-dev" class="mc-btn mc-top hidden" data-id="dev" style="top:20px; right:160px; background:rgba(139,0,0,0.6);"><i class="fa-solid fa-wrench"></i></button>
 
             <!-- D-Pad -->
             <button id="btn-up" class="mc-btn mc-dir" data-id="up" style="bottom:90px; left:90px;"><i class="fa-solid fa-caret-up"></i></button>
@@ -399,23 +404,25 @@
             <button id="btn-down" class="mc-btn mc-dir" data-id="down" style="bottom:20px; left:90px;"><i class="fa-solid fa-caret-down"></i></button>
 
             <!-- Joystick -->
-            <div id="joystick-base" class="mc-btn hidden" data-id="joystick" style="bottom:20px; left:20px; width:160px; height:160px; border-radius:50%; background:rgba(20,20,20,0.6); border:2px solid #555; display:flex; justify-content:center; align-items:center; touch-action:none;">
-                <div id="joystick-knob" style="width:65px; height:65px; border-radius:50%; background:rgba(255,255,255,0.6); box-shadow:0 0 10px rgba(0,0,0,0.5); pointer-events:none; transition:transform 0.05s linear;"></div>
+            <div id="joystick-base" class="mc-btn hidden" data-id="joystick" style="bottom:20px; left:20px; width:160px; height:160px; border-radius:50%; background:rgba(20,20,20,0.3); border:2px solid rgba(85,85,85,0.4); display:flex; justify-content:center; align-items:center; touch-action:none;">
+                <div id="joystick-knob" style="width:65px; height:65px; border-radius:50%; background:rgba(255,255,255,0.3); box-shadow:0 0 10px rgba(0,0,0,0.5); pointer-events:none; transition:transform 0.05s linear;"></div>
             </div>
 
             <!-- Action Buttons -->
             <button id="btn-shoot-left" class="mc-btn mc-act" data-id="shoot-left" style="bottom:190px; left:20px;"><i class="fa-solid fa-crosshairs"></i></button>
             <button id="btn-interact" class="mc-btn mc-act hidden" data-id="interact" style="bottom:170px; right:100px;"><i class="fa-solid fa-hand"></i></button>
-            <button id="btn-reload" class="mc-btn mc-act" data-id="reload" style="bottom:20px; right:100px;"><i class="fa-solid fa-arrows-rotate"></i></button>
-            <button id="btn-aim" class="mc-btn mc-act" data-id="aim" style="bottom:100px; right:20px;"><i class="fa-solid fa-bullseye"></i></button>
+            <button id="btn-reload" class="mc-btn mc-act" data-id="reload" style="bottom:20px; right:100px; width:50px; height:50px; font-size:20px;"><i class="fa-solid fa-arrows-rotate"></i></button>
+            <button id="btn-aim" class="mc-btn mc-act" data-id="aim" style="bottom:100px; right:20px; width:50px; height:50px; font-size:20px;"><i class="fa-solid fa-bullseye"></i></button>
             <button id="btn-shoot" class="mc-btn mc-act" data-id="shoot" style="bottom:170px; right:20px;"><i class="fa-solid fa-crosshairs"></i></button>
             <button id="btn-light" class="mc-btn mc-top" data-id="light" style="bottom:20px; left:230px; transform: scale(0.7); transform-origin: bottom left;"><i class="fa-solid fa-lightbulb"></i></button>
-            <button id="btn-aim-shoot" class="mc-btn mc-top" data-id="aim-shoot" style="bottom:20px; left:275px; background:rgba(139,0,0,0.6); transform: scale(0.7); transform-origin: bottom left;">
+            <button id="btn-aim-shoot" class="mc-btn mc-top" data-id="aim-shoot" style="bottom:20px; left:275px; background:rgba(139,0,0,0.3); transform: scale(0.7); transform-origin: bottom left;">
                 <div style="position:relative; display:inline-block;">
                     <i class="fa-solid fa-hand-pointer"></i>
                     <i class="fa-solid fa-burst" style="font-size:0.5em; position:absolute; top:-5px; right:-8px; color:#ffffff;"></i>
                 </div>
             </button>
+            <button id="btn-camera" class="mc-btn mc-top" data-id="camera" style="bottom:20px; left:320px; transform: scale(0.7); transform-origin: bottom left;"><i class="fa-solid fa-video"></i></button>
+            <button id="btn-dev" class="mc-btn mc-top hidden" data-id="dev" style="bottom:20px; left:365px; background:rgba(139,0,0,0.3); transform: scale(0.7); transform-origin: bottom left;"><i class="fa-solid fa-wrench"></i></button>
             <button id="btn-jump" class="mc-btn mc-act" data-id="jump" style="bottom:20px; right:20px; width:70px; height:70px; font-size:30px;"><i class="fa-solid fa-arrow-up"></i></button>
             
             <!-- Mobile Crosshair -->

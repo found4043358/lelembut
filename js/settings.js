@@ -13,7 +13,8 @@ function saveGraphicsSettings(){
         con: document.getElementById('gfx-con').value,
         bri: document.getElementById('gfx-bri').value,
         devMenuEnabled: document.getElementById('set-devmode').checked,
-        forceMobileControls: document.getElementById('set-force-mobile').checked
+        forceMobileControls: document.getElementById('set-force-mobile') ? document.getElementById('set-force-mobile').checked : false,
+        forceMenuFullscreen: document.getElementById('set-force-fs').checked
     };
     
     fetch('api.php?action=settings_save', {
@@ -38,7 +39,8 @@ function loadSettings(){
                 document.getElementById('gfx-con').value = s.con || 1;
                 document.getElementById('gfx-bri').value = s.bri || 1;
                 document.getElementById('set-devmode').checked = s.devMenuEnabled || false;
-                document.getElementById('set-force-mobile').checked = s.forceMobileControls || false;
+                if(document.getElementById('set-force-mobile')) document.getElementById('set-force-mobile').checked = s.forceMobileControls || false;
+                document.getElementById('set-force-fs').checked = s.forceMenuFullscreen || false;
                 
                 // Apply immediately
                 toggleCRT(s.crt);
@@ -46,7 +48,8 @@ function loadSettings(){
                 changeResolution(s.resolusi);
                 updateGraphicsFilter();
                 toggleDevMode(s.devMenuEnabled || false);
-                toggleForceMobileControls(s.forceMobileControls || false);
+                if(document.getElementById('set-force-mobile')) toggleForceMobileControls(s.forceMobileControls || false);
+                toggleForceMenuFullscreen(s.forceMenuFullscreen || false);
             }
             isSettingsLoading = false;
         }).catch(e => { console.error("Error loading settings:", e); isSettingsLoading = false; });
@@ -93,6 +96,18 @@ function toggleForceMobileControls(isOn){
             mc.classList.remove('hidden');
         } else {
             mc.classList.add('hidden');
+        }
+    }
+    saveGraphicsSettings();
+}
+
+function toggleForceMenuFullscreen(isOn){
+    const btnMainFs = document.getElementById('btn-main-fullscreen');
+    if(btnMainFs){
+        if(isOn || 'ontouchstart' in window || navigator.maxTouchPoints > 0) {
+            btnMainFs.classList.remove('hidden');
+        } else {
+            btnMainFs.classList.add('hidden');
         }
     }
     saveGraphicsSettings();

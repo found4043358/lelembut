@@ -58,6 +58,7 @@ function setMenu(id){
 
     if(id==='game'){
         gameState='PLAY';
+        Audio.playBGM();
         document.getElementById('ui-layer').classList.remove('hidden');
         document.body.classList.add('playing');
         
@@ -68,16 +69,19 @@ function setMenu(id){
         }
     } else if(id==='editor-ui'){
         gameState='EDITOR';
+        Audio.stopBGM();
         // Also clear filter for editor
         canvas.style.filter = _baseCanvasFilter;
         document.getElementById(id).classList.remove('hidden');
         document.body.classList.remove('playing');
     } else if(id==='level-select'){
         fetchLevels('play');
+        Audio.playMenuBGM();
         document.getElementById(id).classList.remove('hidden');
         document.body.classList.remove('playing');
     } else if(id==='editor-select'){
         fetchLevels('edit');
+        Audio.playMenuBGM();
         document.getElementById(id).classList.remove('hidden');
         document.body.classList.remove('playing');
     } else if(id==='pause-menu'){
@@ -93,9 +97,9 @@ function setMenu(id){
             else peBtn.classList.add('hidden');
         }
     } else {
-        if(id==='gameover-menu') gameState='GAMEOVER';
-        else if(id==='victory-menu') gameState='VICTORY';
-        else gameState='MENU';
+        if(id==='gameover-menu') { gameState='GAMEOVER'; Audio.stopBGM(); }
+        else if(id==='victory-menu') { gameState='VICTORY'; Audio.stopBGM(); }
+        else { gameState='MENU'; Audio.playMenuBGM(); }
         if(id) document.getElementById(id).classList.remove('hidden');
         document.body.classList.remove('playing');
     }
@@ -133,4 +137,10 @@ function togglePause(){
         }
     }
 }
+
+document.addEventListener('click', (e) => {
+    if(e.target.closest('button') && gameState !== 'PLAY') {
+        Audio.ui('click');
+    }
+});
 

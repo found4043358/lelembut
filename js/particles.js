@@ -12,6 +12,23 @@ function pDust(x,y,dir){
 function pText(x,y,text,color){
     particles.push({x,y,vx:(Math.random()-0.5)*30,vy:-40-Math.random()*20,life:1,decay:0.8,color,text,type:'text',g:0});
 }
+function pEmitBlood(x, y, n) {
+    for(let i=0; i<n; i++){
+        const a = Math.random() * Math.PI * 2;
+        const s = 50 + Math.random() * 150;
+        particles.push({
+            x, y,
+            vx: Math.cos(a) * s,
+            vy: Math.sin(a) * s - 80,
+            life: 4, // 3s stay + 1s fade
+            decay: 1,
+            color: '#aa0000',
+            sz: 2 + Math.random() * 3,
+            g: 600,
+            type: 'blood'
+        });
+    }
+}
 function updateParticles(dt){
     if(hasWeather('rain') && (currentMapIdx === -1 || Math.random()<0.3)){
         const rx = cam.x + Math.random() * CW * 1.5 - CW*0.25;
@@ -46,6 +63,13 @@ maxLife:0.4+Math.random()*0.4, decay: -0.15, color:'mist', sz: 400+Math.random()
         if(p.type === 'mist') {
             if(p.decay < 0 && p.life >= p.maxLife) p.decay = Math.abs(p.decay); // start fading
             p.life -= p.decay * dt;
+        } else if(p.type === 'blood') {
+            if(isSolidTile(mapTile(Math.floor(p.x/TS),Math.floor((p.y+p.sz)/TS)))) {
+                p.vy = 0;
+                p.vx *= 0.8; // Friction
+                p.y -= Math.abs(p.vy) * dt + 1; // Prevent sinking
+            }
+            p.life -= p.decay * dt;
         } else {
             p.life -= p.decay * dt;
         }
@@ -78,7 +102,7 @@ function drawParticles(ctx,cx,cy){
             ctx.strokeStyle = p.color; ctx.lineWidth = p.sz; ctx.globalAlpha = p.life;
             ctx.beginPath(); ctx.moveTo(p.x-cx, p.y-cy); ctx.lineTo(p.x-cx - p.vx*0.05, p.y-cy - p.vy*0.05); ctx.stroke();
         } else if(p.type === 'text'){
-            ctx.globalAlpha = Math.max(0, p.life);
+            ctx.globalAlpha = Math.min(1, Math.max(0, p.life));
             ctx.fillStyle = p.color;
             ctx.font = 'bold 16px "Special Elite", Arial';
             ctx.textAlign = 'center';
@@ -90,7 +114,8 @@ function drawParticles(ctx,cx,cy){
             ctx.fillStyle = grad;
             ctx.beginPath(); ctx.arc(p.x-cx, p.y-cy, p.sz, 0, Math.PI*2); ctx.fill();
         } else {
-            ctx.globalAlpha=Math.max(0,p.life); ctx.fillStyle=p.color;
+            ctx.globalAlpha = Math.min(1, Math.max(0, p.life)); 
+            ctx.fillStyle = p.color;
             ctx.beginPath(); ctx.arc(p.x-cx, p.y-cy, p.sz, 0, Math.PI*2); ctx.fill();
         }
     }

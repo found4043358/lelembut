@@ -2,6 +2,7 @@
 let binds = {l:'KeyA', r:'KeyD', u:'KeyW', d:'KeyS', jump:'Space', shoot:'KeyZ', interact:'KeyE', toggleAim:'KeyQ', reload:'KeyR', toggleLight:'KeyL'};
 const keys = {l:0,r:0,u:0,d:0,jump:0,jpressed:0,shoot:0,interact:0,ipressed:0,shift:0,reload:0,rpressed:0};
 let waitingForBind = null;
+let lastTouchTime = 0;
 
 function loadBinds(){
     const saved = localStorage.getItem('lelembut_binds');
@@ -52,6 +53,7 @@ function initInput(){
     });
 
     window.addEventListener('mousedown', e => {
+        if (Date.now() - lastTouchTime < 500) return; // Prevent mobile tap from firing double throw
         if (gameState === 'PLAY') {
             if (e.button === 0) {
                 if (player.throwingItem) {
@@ -132,7 +134,7 @@ function initInput(){
             if(e.code==='Digit1') switchWeapon(0);
             if(e.code==='Digit2') switchWeapon(1);
             if(e.code==='Digit3') switchWeapon(2);
-            if(e.code===binds.toggleLight) { player.flashlightOn = !player.flashlightOn; Audio.pick(); } // Using pick sound as toggle
+            if(e.code===binds.toggleLight) { player.flashlightOn = !player.flashlightOn; Audio.flashlight(); }
         }
         
         if(gameState==='EDITOR') {
@@ -168,6 +170,8 @@ function initInput(){
     const mobileControls = document.getElementById('mobile-controls');
     if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
         if(mobileControls) mobileControls.classList.remove('hidden');
+        const btnMainFs = document.getElementById('btn-main-fullscreen');
+        if(btnMainFs) btnMainFs.classList.remove('hidden');
     }
 
     const bindTouch = (id, actionDown, actionUp) => {
@@ -197,8 +201,20 @@ function initInput(){
     bindTouch('btn-up', () => keys.u=1, () => keys.u=0);
     bindTouch('btn-down', () => keys.d=1, () => keys.d=0);
     bindTouch('btn-jump', () => { if(!keys.jump) keys.jpressed=1; keys.jump=1; }, () => keys.jump=0);
-    bindTouch('btn-shoot', () => keys.shoot=1, () => keys.shoot=0);
-    bindTouch('btn-shoot-left', () => keys.shoot=1, () => keys.shoot=0);
+    const handleShootDown = () => {
+        if (player.throwingItem && typeof spawnThrowable === 'function') {
+            spawnThrowable(player.throwingItem, player.x + player.w/2, player.y + player.h/2);
+            player.inventory[player.throwingItem]--;
+            player.throwingItem = null;
+            if(typeof renderInventory === 'function') renderInventory();
+            if(typeof updateHUD === 'function') updateHUD();
+        } else {
+            keys.shoot=1;
+        }
+    };
+    
+    bindTouch('btn-shoot', handleShootDown, () => keys.shoot=0);
+    bindTouch('btn-shoot-left', handleShootDown, () => keys.shoot=0);
     bindTouch('btn-reload', () => { if(!keys.reload) keys.rpressed=1; keys.reload=1; }, () => keys.reload=0);
     bindTouch('btn-interact', () => { if(!keys.interact) keys.ipressed=1; keys.interact=1; }, () => keys.interact=0);
     
@@ -206,7 +222,7 @@ function initInput(){
     bindTouch('btn-light', () => {
         if(typeof player !== 'undefined') {
             player.flashlightOn = !player.flashlightOn;
-            if(typeof Audio !== 'undefined' && Audio.pick) Audio.pick();
+            Audio.flashlight();
             const btn = document.getElementById('btn-light');
             if(btn) btn.style.backgroundColor = player.flashlightOn ? 'rgba(139,0,0,0.6)' : '';
         }
@@ -292,10 +308,11 @@ function initInput(){
         if (gameState === 'PLAY') {
             for(let i=0; i<e.changedTouches.length; i++) {
                 const t = e.changedTouches[i];
+                lastTouchTime = Date.now();
                 if(!t.target.closest('.mc-btn') && aimTouchId === null) {
                     aimTouchId = t.identifier;
                     updateMousePosFromTouch(t);
-                    if(aimShoots) keys.shoot = 1;
+                    if(aimShoots) handleShootDown();
                 }
             }
         }
@@ -325,7 +342,7 @@ function initInput(){
                     const mc = document.getElementById('mobile-crosshair');
                     if(mc) {
                         mc.style.color = '#ffffff';
-                        mc.style.opacity = '0.4';
+                        mc.style.opacity = '0.1';
                         mc.style.transition = 'color 0.2s, opacity 0.2s';
                     }
                 }

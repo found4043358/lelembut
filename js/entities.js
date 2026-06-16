@@ -22,7 +22,7 @@ let victory = false;
 
 function playerDamage(amt, sourceX){
     if(devMode || player.invT>0 || gameState!=='PLAY') return;
-    player.hp-=amt; player.invT=1; camShake = 15; Audio.hit();
+    player.hp-=amt; player.invT=1; camShake = 15; Audio.damage();
     if(sourceX !== undefined) {
         player.vx = (player.x + player.w/2 < sourceX) ? -120 : 120;
         player.vy = -120;
@@ -33,6 +33,9 @@ function playerDamage(amt, sourceX){
 }
 function updateHUD(){
     document.getElementById('hp-bar').style.width=(Math.max(0,player.hp)/player.maxHp*100)+'%';
+    
+    // Heartbeat logic
+    Audio.heartbeat(player.hp > 0 && player.hp / player.maxHp < 0.25);
     
     // Battery icon change based on 25, 50, 75
     const bIcon = document.getElementById('battery-icon');
@@ -116,6 +119,8 @@ function spawnEnemiesForCurrentMap(){
             const type = e.type || 'enemy';
             if(type === 'kuyang') {
                 activeEnemies.push({x:e.x, y:e.y, w:24, h:24, vx:0, vy:0, hp:30, maxHp:30, displayHp:30, dead:false, flash:0, speed:120, state:'chase', atkCd:0, type:'kuyang', hitAndRun: 0, runVx:0, runVy:0});
+            } else if(type === 'stalker') {
+                activeEnemies.push({x:e.x, y:e.y, w:24, h:46, vx:0, vy:0, grounded:false, hp:80, maxHp:80, displayHp:80, dead:false, flash:0, speed:130, patDir:1, patT:0, patI:2+Math.random()*2, state:'chase', atkCd:0, type:'stalker'});
             } else {
                 activeEnemies.push({x:e.x, y:e.y, w:26, h:34, vx:0, vy:0, grounded:false, hp:50, maxHp:50, displayHp:50, dead:false, flash:0, speed:70, patDir:1, patT:0, patI:2+Math.random()*2, state:'patrol', atkCd:0, type:'enemy'});
             }
@@ -138,6 +143,8 @@ function showPickupNotif(iconHtml, text) {
 function toggleInventory() {
     if(gameState === 'PLAY') {
         gameState = 'INVENTORY';
+        Audio.ui('inventory');
+        Audio.walk(false); // Stop walking sound when opening inventory
         const invMenu = document.getElementById('inventory-menu');
         if(invMenu) invMenu.classList.remove('hidden');
         renderInventory();
@@ -234,29 +241,29 @@ function useItem(id) {
             return;
         }
         player.battery = player.maxBattery;
-        Audio.pick();
+        Audio.item('use');
         showToast("Battery Refilled!");
     } else if(id === 'medkit') {
         if(player.hp >= player.maxHp) { if(typeof showToast==='function') showToast("HP Full!"); return; }
         player.hp = Math.min(player.maxHp, player.hp + 50);
-        Audio.pick();
+        Audio.item('use');
         if(typeof showToast==='function') showToast("Used Medkit +50 HP");
     } else if(id === 'potion_speed') {
         player.buffs.speed = 10;
-        Audio.pick();
+        Audio.item('use');
         if(typeof showToast==='function') showToast("Speed Buff Active!");
     } else if(id === 'potion_jump') {
         player.buffs.jump = 10;
-        Audio.pick();
+        Audio.item('use');
         if(typeof showToast==='function') showToast("Jump Buff Active!");
     } else if(id === 'potion_shield') {
         player.buffs.shield = 10;
         player.invT = 10;
-        Audio.pick();
+        Audio.item('use');
         if(typeof showToast==='function') showToast("Shield Buff Active!");
     } else if(id === 'potion_nv') {
         player.nvTimer = 10;
-        Audio.pick();
+        Audio.item('use');
         if(typeof showToast==='function') showToast("Night Vision Active!");
     } else if(id === 'grenade' || id === 'landmine' || id === 'smoke') {
         player.throwingItem = id;

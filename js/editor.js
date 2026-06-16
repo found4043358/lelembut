@@ -220,7 +220,7 @@ function handleEditorClick(cx, cy, isErase=false){
         if(edTool==='spawn'){
             if(currentMapIdx !== -1){ showToast("Spawn must be Outdoor!"); return; }
             map.spawnX = col*TS; map.spawnY = row*TS; player.x=map.spawnX; player.y=map.spawnY;
-        } else if (edTool==='enemy' || edTool==='kuyang'){
+        } else if (edTool==='enemy' || edTool==='kuyang' || edTool==='stalker'){
             map.enemies.push({x: col*TS, y: row*TS, mapIdx: currentMapIdx, type: edTool});
             spawnEnemiesForCurrentMap();
         } else if (['ammo','ammo_mg','ammo_sniper','hp','check','end','battery','nightvision','gun_mg','gun_sniper','medkit','potion_speed','potion_jump','potion_shield','grenade','landmine','smoke'].includes(edTool)){
@@ -246,10 +246,26 @@ function resizeWindow(){
 
     const scaleX = (window.innerWidth * dpr) / INTERNAL_W;
     const scaleY = (window.innerHeight * dpr) / INTERNAL_H;
-    DRAW_SCALE = Math.min(scaleX, scaleY);
-    DRAW_OFFSET_X = ((window.innerWidth * dpr) - (INTERNAL_W * DRAW_SCALE)) / 2;
-    DRAW_OFFSET_Y = ((window.innerHeight * dpr) - (INTERNAL_H * DRAW_SCALE)) / 2;
-    lightInit();
+    
+    // Gunakan Math.max agar game memotong bagian atas/bawah jika layar terlalu lebar
+    // Ini mencegah cheating pada layar ultrawide sekaligus menghilangkan area hitam.
+    DRAW_SCALE = Math.max(scaleX, scaleY);
+    CW = (window.innerWidth * dpr) / DRAW_SCALE;
+    CH = (window.innerHeight * dpr) / DRAW_SCALE;
+    
+    DRAW_OFFSET_X = 0;
+    DRAW_OFFSET_Y = 0;
+    
+    // Update batas kamera jika sudah ada map yang aktif
+    if (typeof cam !== 'undefined' && typeof getActiveMap === 'function') {
+        const m = getActiveMap();
+        if (m) {
+            cam.mw = m.w;
+            cam.mh = m.h + CH/2;
+        }
+    }
+    
+    if(typeof lightInit === 'function') lightInit();
 }
 window.addEventListener('resize', resizeWindow);
 resizeWindow();

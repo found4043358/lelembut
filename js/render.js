@@ -490,7 +490,7 @@ function drawPlayer(ctx){
         const progress = 1 - (p.reloadCd / p.currentWeapon.reloadTime);
         ctx.fillStyle = 'rgba(0,0,0,0.6)';
         ctx.fillRect(p.x - cam.x + p.w/2 - wBar/2, p.y - cam.y + p.h + 4, wBar, hBar);
-        ctx.fillStyle = '#0f0';
+        ctx.fillStyle = '#fff';
         ctx.fillRect(p.x - cam.x + p.w/2 - wBar/2, p.y - cam.y + p.h + 4, wBar * progress, hBar);
     }
 
@@ -617,6 +617,38 @@ function drawEnemy(ctx,e){
             ctx.fillStyle='#400000'; ctx.fillRect(0,-8,e.w,3);
             ctx.fillStyle='#ffaa00'; ctx.fillRect(0,-8,e.w*(e.displayHp/e.maxHp),3);
             ctx.fillStyle='#cc0000'; ctx.fillRect(0,-8,e.w*(e.hp/e.maxHp),3);
+        }
+        ctx.restore();
+        return;
+    }
+    if (e.type === 'stalker') {
+        const alpha = gameState==='EDITOR' ? 1 : Math.min(1,(500-dist)/200);
+        ctx.save(); ctx.translate(e.x-cam.x, e.y-cam.y); ctx.globalAlpha=alpha;
+        
+        // Shadowy Body
+        ctx.fillStyle = e.flash > 0 ? '#fff' : '#111';
+        ctx.fillRect(0, 0, e.w, e.h);
+        
+        // Tall shadowy head
+        ctx.beginPath(); ctx.arc(e.w/2, 0, 10, 0, Math.PI*2); ctx.fill();
+        
+        // Glowing Eyes
+        if(gameState === 'EDITOR' || player.flashlightOn) {
+            ctx.fillStyle = e.flash > 0 ? '#000' : '#ff0000';
+            const eyeDir = e.vx > 0 ? 3 : (e.vx < 0 ? -3 : 0);
+            ctx.beginPath(); ctx.arc(e.w/2 - 4 + eyeDir, -2, 2, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(e.w/2 + 4 + eyeDir, -2, 2, 0, Math.PI*2); ctx.fill();
+            // Glow effect
+            ctx.globalAlpha = alpha * 0.5;
+            ctx.beginPath(); ctx.arc(e.w/2 - 4 + eyeDir, -2, 5, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(e.w/2 + 4 + eyeDir, -2, 5, 0, Math.PI*2); ctx.fill();
+            ctx.globalAlpha = alpha;
+        }
+        
+        if(e.hp < e.maxHp){
+            ctx.fillStyle='#400000'; ctx.fillRect(0,-12,e.w,3);
+            ctx.fillStyle='#ffaa00'; ctx.fillRect(0,-12,e.w*(e.displayHp/e.maxHp),3);
+            ctx.fillStyle='#cc0000'; ctx.fillRect(0,-12,e.w*(e.hp/e.maxHp),3);
         }
         ctx.restore();
         return;

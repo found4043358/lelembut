@@ -184,7 +184,10 @@ function updatePlay(dt){
             const f=friction*dt; player.vx=player.vx>0?Math.max(0,player.vx-f):Math.min(0,player.vx+f);
         }
         player.vx=Math.max(-maxSpd,Math.min(player.vx,maxSpd));
-        if(player.grounded&&Math.abs(player.vx)>10)player.bobPhase+=dt*10;
+        let isWalking = player.grounded && Math.abs(player.vx) > 10;
+        if(isWalking) player.bobPhase+=dt*10;
+        Audio.walk(isWalking && gameState === 'PLAY');
+        
         if(keys.jpressed){player.jbuf=.12;keys.jpressed=0;} else if(player.jbuf>0)player.jbuf-=dt;
         
         if(isWater) {
@@ -278,6 +281,7 @@ function updatePlay(dt){
             }
         } else if(keys.rpressed && cw.mag < cw.maxMag && cw.ammo > 0) {
             player.reloadCd = cw.reloadTime;
+            Audio.reload();
             updateHUD();
         }
         keys.rpressed = 0; // Prevent queued reloads!
@@ -303,7 +307,7 @@ function updatePlay(dt){
         if(keys.shoot && cw.mag > 0 && player.fireCd <= 0 && player.reloadCd <= 0){
             cw.mag--; 
             player.fireCd = cw.fireCdTime; 
-            Audio.shoot();
+            Audio.shoot(cw.id);
             
             const bx = gunOx + Math.cos(gunAngle) * 16;
             const by = gunOy + Math.sin(gunAngle) * 16;
@@ -320,6 +324,7 @@ function updatePlay(dt){
             updateHUD();
         } else if(keys.shoot && cw.mag === 0 && cw.ammo > 0 && player.reloadCd <= 0 && player.fireCd <= 0) {
             player.reloadCd = cw.reloadTime; // auto reload
+            Audio.reload();
             updateHUD();
         }
 
@@ -355,7 +360,8 @@ function updatePlay(dt){
                     const dmg = b.dmg;
                     e.hp-=dmg;e.flash=1; pEmit(b.x,b.y,6,b.color,30,70,200);
                     pText(e.x+e.w/2, e.y, dmg.toString(), b.color);
-                    if(e.hp<=0){e.dead=true;pEmit(e.x+e.w/2,e.y+e.h/2,12,'#880000',40,90,200);}
+                    Audio.damage();
+                    if(e.hp<=0){e.dead=true;pEmitBlood(e.x+e.w/2,e.y+e.h/2,20); Audio.enemyDie(e.type);}
                     player.bullets.splice(i,1);break;
                 }
             }
@@ -371,91 +377,92 @@ function updatePlay(dt){
            player.y < pk.y + TS && player.y + player.h > pk.y){
             pk.got=1;
             if(pk.t==='ammo'){
-                Audio.pick(); 
+                Audio.item('get'); 
                 let w = player.weapons[0]; // pistol
                 w.ammo=Math.min(w.maxAmmo, w.ammo+10);
                 pEmit(cx,cy,8,'#ffcc00',40,80,150);
                 showPickupNotif('<i class="fa-solid fa-box" style="color:#ffcc00;"></i>', '+10 Pistol Ammo');
             }
             else if(pk.t==='ammo_mg'){
-                Audio.pick(); 
+                Audio.item('get'); 
                 let w = player.weapons[1]; // mg
                 w.ammo=Math.min(w.maxAmmo, w.ammo+30);
                 pEmit(cx,cy,8,'#ffcc00',40,80,150);
                 showPickupNotif('<i class="fa-solid fa-boxes-stacked" style="color:#ffcc00;"></i>', '+30 MG Ammo');
             }
             else if(pk.t==='ammo_sniper'){
-                Audio.pick(); 
+                Audio.item('get'); 
                 let w = player.weapons[2]; // sniper
                 w.ammo=Math.min(w.maxAmmo, w.ammo+5);
                 pEmit(cx,cy,8,'#ffcc00',40,80,150);
                 showPickupNotif('<i class="fa-solid fa-box-open" style="color:#ffcc00;"></i>', '+5 Sniper Ammo');
             }
             else if(pk.t==='hp'){
-                Audio.pick(); player.hp=Math.min(player.maxHp,player.hp+25);
+                Audio.item('use'); player.hp=Math.min(player.maxHp,player.hp+25);
                 pEmit(cx,cy,8,'#ff4444',40,80,150);
                 showPickupNotif('<i class="fa-solid fa-heart" style="color:#ff4444;"></i>', '+25 HP');
             }
             else if(pk.t==='battery'){
-                Audio.pick(); 
                 if(player.battery / player.maxBattery < 0.15) {
+                    Audio.item('use'); 
                     player.battery=player.maxBattery; 
                     showPickupNotif('<i class="fa-solid fa-battery-full" style="color:#00ffcc;"></i>', 'Battery Refilled');
                 } else {
+                    Audio.item('get'); 
                     player.inventory.battery++;
                     showPickupNotif('<i class="fa-solid fa-battery-full" style="color:#00ffcc;"></i>', 'Battery Stored');
                 }
                 pEmit(cx,cy,8,'#00ffcc',40,80,150);
             }
             else if(pk.t==='nightvision'){
-                Audio.pick(); 
+                Audio.item('get'); 
                 player.inventory.potion_nv = (player.inventory.potion_nv || 0) + 1;
                 pEmit(cx,cy,8,'#00ff00',40,80,150);
                 showPickupNotif('<i class="fa-solid fa-glasses" style="color:#00ff00;"></i>', 'Night Vision Stored');
             }
             else if(pk.t==='gun_mg'){
-                Audio.pick(); player.weapons[1].unlocked = true;
+                Audio.item('get'); player.weapons[1].unlocked = true;
                 pEmit(cx,cy,10,'#ffaa00',50,100,150);
                 showPickupNotif('<i class="fa-solid fa-gun" style="color:#ffaa00;"></i>', 'Machine Gun Unlocked!');
             }
             else if(pk.t==='gun_sniper'){
-                Audio.pick(); player.weapons[2].unlocked = true;
+                Audio.item('get'); player.weapons[2].unlocked = true;
                 pEmit(cx,cy,10,'#ff4400',50,100,150);
                 showPickupNotif('<i class="fa-solid fa-crosshairs" style="color:#ff4400;"></i>', 'Sniper Unlocked!');
             }
             else if(pk.t==='medkit'){
-                Audio.pick(); player.inventory.medkit++;
+                Audio.item('get'); player.inventory.medkit++;
                 pEmit(cx,cy,8,'#ff4444',40,80,150);
                 showPickupNotif('<i class="fa-solid fa-suitcase-medical" style="color:#ff4444;"></i>', 'Medkit');
             }
             else if(pk.t==='potion_speed'){
-                Audio.pick(); player.inventory.potion_speed++;
+                Audio.item('get'); player.inventory.potion_speed++;
                 pEmit(cx,cy,8,'#00ddff',40,80,150);
                 showPickupNotif('<i class="fa-solid fa-flask" style="color:#00ddff;"></i>', 'Speed Potion');
             }
             else if(pk.t==='potion_jump'){
-                Audio.pick(); player.inventory.potion_jump++;
+                Audio.item('get'); player.inventory.potion_jump++;
                 pEmit(cx,cy,8,'#ff00ff',40,80,150);
                 showPickupNotif('<i class="fa-solid fa-flask" style="color:#ff00ff;"></i>', 'Jump Potion');
             }
             else if(pk.t==='potion_shield'){
-                Audio.pick(); player.inventory.potion_shield++;
+                Audio.item('get'); player.inventory.potion_shield++;
                 pEmit(cx,cy,8,'#ffff00',40,80,150);
                 showPickupNotif('<i class="fa-solid fa-shield" style="color:#ffff00;"></i>', 'Shield Potion');
             }
             else if(pk.t==='grenade'){
-                Audio.pick(); player.inventory.grenade++;
-                pEmit(cx,cy,8,'#ff4400',40,80,150);
+                Audio.item('get'); player.inventory.grenade++;
+                pEmit(cx,cy,8,'#44ff44',40,80,150);
                 showPickupNotif('<i class="fa-solid fa-bomb" style="color:#ff4400;"></i>', 'Grenade');
             }
             else if(pk.t==='landmine'){
-                Audio.pick(); player.inventory.landmine++;
-                pEmit(cx,cy,8,'#aaaaaa',40,80,150);
+                Audio.item('get'); player.inventory.landmine++;
+                pEmit(cx,cy,8,'#ff4444',40,80,150);
                 showPickupNotif('<i class="fa-solid fa-compact-disc" style="color:#aaaaaa;"></i>', 'Landmine');
             }
             else if(pk.t==='smoke'){
-                Audio.pick(); player.inventory.smoke++;
-                pEmit(cx,cy,8,'#888888',40,80,150);
+                Audio.item('get'); player.inventory.smoke++;
+                pEmit(cx,cy,8,'#aaaaaa',40,80,150);
                 showPickupNotif('<i class="fa-solid fa-cloud" style="color:#888888;"></i>', 'Smoke Grenade');
             }
             else if(pk.t==='check'){
@@ -525,6 +532,7 @@ function updatePlay(dt){
         if (player.autoBattery && (player.battery / player.maxBattery <= 0.15) && player.inventory.battery > 0) {
             player.inventory.battery--;
             player.battery = player.maxBattery;
+            Audio.item('get');
             showPickupNotif('<i class="fa-solid fa-battery-full" style="color:#00ffcc;"></i>', 'Auto-Reload Battery');
             if(gameState === 'INVENTORY') renderInventory();
         }
@@ -597,6 +605,7 @@ function updatePlay(dt){
         t.life -= dt;
         
         if(t.type === 'grenade' && t.life <= 0) {
+            Audio.explode(t.type);
             explodeAt(t.x + t.w/2, t.y + t.h/2, 120, 100);
             throwables.splice(i, 1);
             continue;
@@ -609,6 +618,7 @@ function updatePlay(dt){
                 }
             }
             if(triggered) {
+                Audio.explode(t.type);
                 explodeAt(t.x + t.w/2, t.y + t.h/2, 100, 150);
                 throwables.splice(i, 1);
                 continue;
@@ -632,8 +642,21 @@ function updatePlay(dt){
         }
     }
     
+    if(!window.ambient) window.ambient = { enemyT: 0, enemyCd: 0, kuyangT: 0, kuyangCd: 0 };
+    let hasEnemyNearby = false;
+    let hasKuyangNearby = false;
+
     for(const e of activeEnemies){
         if(e.dead)continue;
+        
+        const centerDist = Math.hypot((player.x+player.w/2) - (e.x+e.w/2), (player.y+player.h/2) - (e.y+e.h/2));
+        if(centerDist <= 15 * TS) {
+            if(e.type === 'kuyang') hasKuyangNearby = true;
+            else if(e.type === 'stalker') {
+                if(centerDist <= 10 * TS) hasKuyangNearby = true;
+            }
+            else hasEnemyNearby = true;
+        }
         
         if(e.displayHp === undefined) e.displayHp = e.hp;
         if(e.displayHp > e.hp) e.displayHp -= (e.displayHp - e.hp) * 5 * dt + 5 * dt;
@@ -660,6 +683,7 @@ function updatePlay(dt){
             if(e.hp <= 0) {
                 e.dead = true;
                 pEmit(ecX, ecY, 15, '#ffaa00', 50, 100, 200);
+                pEmitBlood(ecX, ecY, 20);
                 continue;
             }
         }
@@ -763,7 +787,16 @@ function updatePlay(dt){
         const dist = Math.abs(player.x - e.x);
         
         if(!e.stuckT) e.stuckT = 0;
-        if(e.stuckT > 0) {
+        
+        let isStalkerFrozen = false;
+        if(e.type === 'stalker' && !player.flashlightOn) {
+            isStalkerFrozen = true;
+        }
+
+        if(isStalkerFrozen) {
+            e.vx = 0;
+            e.state = 'idle';
+        } else if(e.stuckT > 0) {
             e.stuckT -= dt;
             e.vx = e.patDir * e.speed * 0.5;
         } else {
@@ -803,13 +836,15 @@ function updatePlay(dt){
         moveAndCollide(e, dt);
         
         // Block climbing / Step up
-        if(attemptedVx !== 0 && e.vx === 0) {
-            const stepUpY = e.y + e.h - TS - 5;
+        if(attemptedVx !== 0 && e.vx === 0 && !(e.type === 'stalker' && !player.flashlightOn)) {
+            const isStalker = e.type === 'stalker';
+            const blocks = isStalker ? 2 : 1;
+            const stepUpY = e.y + e.h - (blocks * TS) - 5;
             const stepLookX = attemptedVx > 0 ? e.x + e.w + 2 : e.x - 2;
             const tileAboveObstacle = mapTile(Math.floor(stepLookX/TS), Math.floor(stepUpY/TS));
             if(!isSolidTile(tileAboveObstacle)) {
                 if (e.grounded) {
-                    e.vy = -380; // Jump over the 1 block obstacle
+                    e.vy = isStalker ? -550 : -380; // Jump over the obstacle
                 }
             } else {
                 e.stuckT = 1.0 + Math.random(); 
@@ -825,12 +860,44 @@ function updatePlay(dt){
         }
         if(e.flash > 0) e.flash -= dt*5;
     }
+
+    if(window.ambient) {
+        if(window.ambient.enemyCd > 0) window.ambient.enemyCd -= dt;
+        if(window.ambient.kuyangCd > 0) window.ambient.kuyangCd -= dt;
+        
+        if(hasEnemyNearby && window.ambient.enemyCd <= 0) {
+            window.ambient.enemyT += dt;
+            if(window.ambient.enemyT >= 3) {
+                Audio.ambient('enemy');
+                window.ambient.enemyCd = 60;
+                window.ambient.enemyT = 0;
+            }
+        } else {
+            window.ambient.enemyT = 0;
+        }
+        
+        if(hasKuyangNearby && window.ambient.kuyangCd <= 0) {
+            window.ambient.kuyangT += dt;
+            if(window.ambient.kuyangT >= 3) {
+                Audio.ambient('kuyang');
+                window.ambient.kuyangCd = 120;
+                window.ambient.kuyangT = 0;
+            }
+        } else {
+            window.ambient.kuyangT = 0;
+        }
+    }
+    
+    Audio.rain(hasWeather('rain'));
+
     updateParticles(dt);
 
     const m = getActiveMap();
     if(!devMode && player.y>m.h+50){player.hp=0;} 
     if(player.hp<=0) {
         gameOver=true;
+        Audio.walk(false);
+        Audio.dead();
         transitionTo('gameover-menu');
     }
     camFollow(player.x+player.w/2,player.y+player.h/2,dt);
@@ -1054,6 +1121,7 @@ function spawnThrowable(type, x, y) {
         life: type === 'grenade' ? 3 : (type === 'smoke' ? 20 : Infinity),
         grounded: false
     });
+    if(type === 'smoke') Audio.explode('smoke');
 }
 
 function explodeAt(x, y, radius, damage) {
@@ -1065,7 +1133,9 @@ function explodeAt(x, y, radius, damage) {
             e.flash = 1;
             if(e.hp <= 0 && !e.dead) {
                 e.dead = true;
+                Audio.enemyDie(e.type);
                 pEmit(e.x+e.w/2, e.y+e.h/2, 15, '#ffaa00', 50, 100, 200);
+                pEmitBlood(e.x+e.w/2, e.y+e.h/2, 20);
             }
         }
     }
