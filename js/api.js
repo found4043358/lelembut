@@ -1,5 +1,19 @@
 // ============ API (Supabase Integration) ============
 
+function showLoading(text="LOADING...") {
+    const overlay = document.getElementById('loading-overlay');
+    const textEl = document.getElementById('loading-text');
+    if(overlay && textEl) {
+        textEl.innerText = text;
+        overlay.classList.remove('hidden');
+    }
+}
+
+function hideLoading() {
+    const overlay = document.getElementById('loading-overlay');
+    if(overlay) overlay.classList.add('hidden');
+}
+
 // Migration function (only works on localhost where api.php exists)
 window.migrateToSupabase = async function() {
     try {
@@ -45,8 +59,8 @@ async function fetchLevels(mode){
     try {
         const { data: levels, error } = await supabaseClient
             .from('levels')
-            .select('id, name')
-            .order('id', { ascending: false });
+            .select('id, name, sort_order')
+            .order('sort_order', { ascending: true });
 
         if (error) throw error;
 
@@ -57,11 +71,13 @@ async function fetchLevels(mode){
             levels.forEach(l=>{
                 const d = document.createElement('div'); d.className='level-item';
                 if(mode==='play'){
-                    d.innerHTML = `<span>${l.name}</span> <div class="actions"><button class="ed-btn" onclick="playLevel(${l.id})">▶ Play</button></div>`;
+                    d.innerHTML = `<span>${l.name}</span> <div class="actions"><button class="ed-btn" onclick="playLevel(${l.id})"><i class="fa-solid fa-play"></i> Play</button></div>`;
                 } else {
                     d.innerHTML = `<span>${l.name}</span> <div class="actions">
-                        <button class="ed-btn" onclick="duplicateLevel(${l.id})">📑 Duplicate</button>
-                        <button class="ed-btn" onclick="loadEditorLevel(${l.id})">✏️ Edit</button>
+                        <button class="ed-btn" onclick="moveLevel(${l.id}, 'up')" title="Move Up"><i class="fa-solid fa-arrow-up"></i></button>
+                        <button class="ed-btn" onclick="moveLevel(${l.id}, 'down')" title="Move Down"><i class="fa-solid fa-arrow-down"></i></button>
+                        <button class="ed-btn" onclick="duplicateLevel(${l.id})"><i class="fa-solid fa-copy"></i> Duplicate</button>
+                        <button class="ed-btn" onclick="loadEditorLevel(${l.id})"><i class="fa-solid fa-pen"></i> Edit</button>
                     </div>`;
                 }
                 list.appendChild(d);
@@ -70,8 +86,37 @@ async function fetchLevels(mode){
     } catch(e){ console.error(e); }
 }
 
+async function moveLevel(id, direction) {
+    const idx = levelList.findIndex(l => l.id === id);
+    if(idx === -1) return;
+    
+    let targetIdx = -1;
+    if(direction === 'up' && idx > 0) targetIdx = idx - 1;
+    if(direction === 'down' && idx < levelList.length - 1) targetIdx = idx + 1;
+    
+    if(targetIdx !== -1) {
+        const currentLevel = levelList[idx];
+        const targetLevel = levelList[targetIdx];
+        
+        // Swap sort_orders
+        const tempOrder = currentLevel.sort_order;
+        currentLevel.sort_order = targetLevel.sort_order;
+        targetLevel.sort_order = tempOrder;
+        
+        try {
+            await supabaseClient.from('levels').update({ sort_order: currentLevel.sort_order }).eq('id', currentLevel.id);
+            await supabaseClient.from('levels').update({ sort_order: targetLevel.sort_order }).eq('id', targetLevel.id);
+            fetchLevels('edit');
+        } catch(e) {
+            console.error("Error moving level", e);
+            showToast("Error moving level");
+        }
+    }
+}
+
 async function playLevel(id){
     try {
+        showLoading("LOADING LEVEL...");
         const { data, error } = await supabaseClient
             .from('levels')
             .select('*')
@@ -86,8 +131,12 @@ async function playLevel(id){
             respawnPoint = {x: map.spawnX, y: map.spawnY, mapIdx: -1};
             respawnData = null;
             startGameplay();
+            hideLoading();
         });
-    } catch(e) { showToast('Error loading level'); }
+    } catch(e) { 
+        hideLoading();
+        showToast('Error loading level'); 
+    }
 }
 
 function restartLevel(){
@@ -110,12 +159,13 @@ function playNextLevel(){
 
 async function loadEditorLevel(id, duplicate=false){
     try {
+        showLoading("LOADING EDITOR...");
         const { data, error } = await supabaseClient
             .from('levels')
             .select('*')
             .eq('id', id)
             .single();
-
+            
         if (error) throw error;
 
         transitionTo(() => {
@@ -128,8 +178,12 @@ async function loadEditorLevel(id, duplicate=false){
                 document.getElementById('level-name-input').value = data.name;
             }
             startEditor();
+            hideLoading();
         });
-    } catch(e) { showToast('Error loading level'); }
+    } catch(e) { 
+        hideLoading();
+        showToast('Error loading level'); 
+    }
 }
 
 async function duplicateLevel(id){
@@ -145,7 +199,7 @@ async function duplicateLevel(id){
         const newName = original.name + ' (Copy)';
         const { data: saved, error: saveErr } = await supabaseClient
             .from('levels')
-            .insert([{ name: newName, data: original.data }])
+            .insert([{ name: newName, data: original.data, sort_order: Date.now() }])
             .select()
             .single();
 
@@ -180,6 +234,7 @@ async function saveLevel(){
     };
     
     try {
+        showLoading("SAVING LEVEL...");
         if (currentLevelId) {
             // Update
             const { data, error } = await supabaseClient
@@ -194,16 +249,18 @@ async function saveLevel(){
             // Insert
             const { data, error } = await supabaseClient
                 .from('levels')
-                .insert([{ name: name, data: mapData }])
+                .insert([{ name: name, data: mapData, sort_order: Date.now() }])
                 .select()
                 .single();
             if (error) throw error;
             currentLevelId = data.id;
         }
         isMapUnsaved = false;
+        hideLoading();
         return true;
     } catch(e){ 
         console.error(e);
+        hideLoading();
         showToast('Error saving level'); 
         return false; 
     }
