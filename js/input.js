@@ -202,6 +202,12 @@ function initInput(){
     bindTouch('btn-interact', () => { if(!keys.interact) keys.ipressed=1; keys.interact=1; }, () => keys.interact=0);
     
     // New buttons
+    bindTouch('btn-light', () => {
+        if(typeof player !== 'undefined') {
+            player.flashlightOn = !player.flashlightOn;
+            if(typeof Audio !== 'undefined' && Audio.pick) Audio.pick();
+        }
+    }, () => {});
     bindTouch('btn-pause', () => { if(typeof togglePause === 'function') togglePause(); }, () => {});
     bindTouch('btn-inventory', () => { if(typeof toggleInventory === 'function') toggleInventory(); }, () => {});
     bindTouch('btn-camera', () => { 
@@ -311,4 +317,83 @@ function initInput(){
     };
     gameContainer.addEventListener('touchend', handleAimTouchEnd, {passive: false});
     gameContainer.addEventListener('touchcancel', handleAimTouchEnd, {passive: false});
+
+    // Analog Joystick Logic
+    const jBase = document.getElementById('joystick-base');
+    const jKnob = document.getElementById('joystick-knob');
+    let jActive = false;
+    let jId = null;
+    let jRect = null;
+
+    if(jBase) {
+        jBase.addEventListener('touchstart', (e) => {
+            if(typeof isEditingLayout !== 'undefined' && isEditingLayout) return; // handled by layout editor
+            const t = e.changedTouches[0];
+            jId = t.identifier;
+            jActive = true;
+            jRect = jBase.getBoundingClientRect();
+            updateJoystick(t);
+        }, {passive:false});
+        
+        jBase.addEventListener('touchmove', (e) => {
+            if(!jActive) return;
+            for(let i=0; i<e.changedTouches.length; i++){
+                if(e.changedTouches[i].identifier === jId) {
+                    updateJoystick(e.changedTouches[i]);
+                }
+            }
+        }, {passive:false});
+
+        const endJoystick = (e) => {
+            for(let i=0; i<e.changedTouches.length; i++){
+                if(e.changedTouches[i].identifier === jId) {
+                    jActive = false;
+                    jId = null;
+                    if(jKnob) jKnob.style.transform = `translate(-50%, -50%)`;
+                    keys.l = 0;
+                    keys.r = 0;
+                    keys.u = 0;
+                    keys.d = 0;
+                }
+            }
+        };
+
+        jBase.addEventListener('touchend', endJoystick);
+        jBase.addEventListener('touchcancel', endJoystick);
+    }
+
+    function updateJoystick(t) {
+        if(!jRect || !jKnob) return;
+        const centerX = jRect.left + jRect.width/2;
+        const centerY = jRect.top + jRect.height/2;
+        const maxDist = jRect.width/2;
+        
+        let dx = t.clientX - centerX;
+        let dy = t.clientY - centerY;
+        let dist = Math.hypot(dx, dy);
+        
+        if(dist > maxDist) {
+            dx = (dx/dist) * maxDist;
+            dy = (dy/dist) * maxDist;
+        }
+        
+        jKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+        
+        // Deadzone & mapping to keys
+        if(Math.abs(dx) > 15) {
+            keys.l = dx < 0 ? 1 : 0;
+            keys.r = dx > 0 ? 1 : 0;
+        } else {
+            keys.l = 0;
+            keys.r = 0;
+        }
+        
+        if(Math.abs(dy) > 15) {
+            keys.u = dy < 0 ? 1 : 0;
+            keys.d = dy > 0 ? 1 : 0;
+        } else {
+            keys.u = 0;
+            keys.d = 0;
+        }
+    }
 }

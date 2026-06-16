@@ -103,6 +103,11 @@ let mcLayoutData = {};
 let isEditingLayout = false;
 
 function applyMobileLayout() {
+    const movType = localStorage.getItem('lelembut_movement') || 'dpad';
+    const movSelect = document.getElementById('set-movement-type');
+    if(movSelect) movSelect.value = movType;
+    if(typeof changeMovementType === 'function') changeMovementType(movType);
+
     const saved = localStorage.getItem('lelembut_mc_layout');
     if(saved) {
         mcLayoutData = JSON.parse(saved);
@@ -246,4 +251,18 @@ window.addEventListener('load', () => {
     loadSettings();
     applyMobileLayout();
 });
+
+function changeMovementType(type) {
+    localStorage.setItem('lelembut_movement', type);
+    const dpadBtns = ['btn-up', 'btn-down', 'btn-left', 'btn-right'].map(id => document.getElementById(id));
+    const joystick = document.getElementById('joystick-base');
+    
+    if (type === 'analog') {
+        dpadBtns.forEach(b => b && b.classList.add('hidden'));
+        if(joystick) joystick.classList.remove('hidden');
+    } else {
+        dpadBtns.forEach(b => b && b.classList.remove('hidden'));
+        if(joystick) joystick.classList.add('hidden');
+    }
+}
 
