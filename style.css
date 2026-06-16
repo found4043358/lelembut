@@ -43,12 +43,12 @@ button:hover{background:#330000;color:#fff;border-color:#ff0000;box-shadow:0 0 1
 button:active{transform:translateY(1px);box-shadow:0 0 5px rgba(255,0,0,0.4);}
 
 /* Settings Bind Row */
-.bind-row{display:flex;justify-content:space-between;align-items:center;width:300px;margin-bottom:5px}
-.bind-row span{font-size:18px}
-.bind-row button{min-width:120px;padding:5px}
+.bind-row{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:320px;margin-bottom:5px}
+.bind-row span{font-size:16px}
+.bind-row button{min-width:100px;padding:5px}
 
 /* List Container */
-.list-container{max-height:300px;overflow-y:auto;width:480px;margin-bottom:20px;}
+.list-container{max-height:300px;overflow-y:auto;width:100%;max-width:480px;margin-bottom:20px;}
 .level-item{display:flex;justify-content:space-between;align-items:center;background:#111;border:1px solid #333;padding:10px;margin-bottom:5px;cursor:default}
 .level-item span{font-size: 18px;}
 .level-item .actions{display:flex; gap: 5px;}
