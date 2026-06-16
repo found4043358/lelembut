@@ -851,10 +851,8 @@ function loop(t){
             edMouseX = (rawX - centerX) / camZoom + centerX;
             edMouseY = (rawY - centerY) / camZoom + centerY;
         }
-    } else {
-        camZoom = 1; camZoomTarget = 1; zoomState = 0;
     }
-
+    
     ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
     ctx.save();
     ctx.translate(DRAW_OFFSET_X, DRAW_OFFSET_Y);

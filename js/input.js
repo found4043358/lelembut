@@ -198,6 +198,7 @@ function initInput(){
     bindTouch('btn-down', () => keys.d=1, () => keys.d=0);
     bindTouch('btn-jump', () => { if(!keys.jump) keys.jpressed=1; keys.jump=1; }, () => keys.jump=0);
     bindTouch('btn-shoot', () => keys.shoot=1, () => keys.shoot=0);
+    bindTouch('btn-shoot-left', () => keys.shoot=1, () => keys.shoot=0);
     bindTouch('btn-reload', () => { if(!keys.reload) keys.rpressed=1; keys.reload=1; }, () => keys.reload=0);
     bindTouch('btn-interact', () => { if(!keys.interact) keys.ipressed=1; keys.interact=1; }, () => keys.interact=0);
     

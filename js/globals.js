@@ -7,7 +7,7 @@
 const INTERNAL_W = 1280, INTERNAL_H = 720;
 let CW = INTERNAL_W, CH = INTERNAL_H;
 let DRAW_SCALE = 1, DRAW_OFFSET_X = 0, DRAW_OFFSET_Y = 0;
-let camZoom = 1, camZoomTarget = 1, zoomState = 0;
+let camZoom = 1.4, camZoomTarget = 1.4, zoomState = 1;
 let camShake = 0;
 const TS = 40;
 let filmMode = false;
