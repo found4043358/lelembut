@@ -1,13 +1,60 @@
-// ============ API ============
-async function fetchLevels(mode){
+// ============ API (Supabase Integration) ============
+
+// Migration function (only works on localhost where api.php exists)
+window.migrateToSupabase = async function() {
     try {
+        console.log("Starting migration from SQLite to Supabase...");
         const res = await fetch('api.php?action=list');
         const json = await res.json();
+        
+        if(!json.success || !json.levels) {
+            alert("No levels found in local SQLite or api.php not accessible.");
+            return;
+        }
+
+        let migratedCount = 0;
+        for (const level of json.levels) {
+            const levelDataRes = await fetch(`api.php?action=load&id=${level.id}`);
+            const levelDataJson = await levelDataRes.json();
+            
+            if(levelDataJson.success) {
+                // Insert into Supabase
+                const { data, error } = await supabaseClient
+                    .from('levels')
+                    .insert([{ 
+                        name: levelDataJson.level.name, 
+                        data: levelDataJson.level.data 
+                    }]);
+                    
+                if(error) {
+                    console.error("Error migrating level:", level.name, error);
+                } else {
+                    console.log("Migrated:", level.name);
+                    migratedCount++;
+                }
+            }
+        }
+        alert(`Migration complete! Successfully migrated ${migratedCount} levels to Supabase.`);
+    } catch(e) {
+        console.error(e);
+        alert("Migration failed. Ensure you are running this from Laragon/localhost.");
+    }
+}
+
+async function fetchLevels(mode){
+    try {
+        const { data: levels, error } = await supabaseClient
+            .from('levels')
+            .select('id, name')
+            .order('id', { ascending: false });
+
+        if (error) throw error;
+
         const list = document.getElementById(mode==='play'?'play-level-list':'edit-level-list');
         list.innerHTML = '';
-        if(json.success && json.levels.length>0){
-            levelList = json.levels;
-            json.levels.forEach(l=>{
+        if(levels && levels.length>0){
+            levelList = levels;
+            levels.forEach(l=>{
                 const d = document.createElement('div'); d.className='level-item';
                 if(mode==='play'){
                     d.innerHTML = `<span>${l.name}</span> <div class="actions"><button class="ed-btn" onclick="playLevel(${l.id})">▶ Play</button></div>`;
@@ -25,27 +72,34 @@ async function fetchLevels(mode){
 
 async function playLevel(id){
     try {
-        const res = await fetch(`api.php?action=load&id=${id}`);
-        const json = await res.json();
-        if(json.success){
-            transitionTo(() => {
-                currentLevelId = json.level.id;
-                loadMapData(json.level.data);
-                respawnPoint = {x: map.spawnX, y: map.spawnY, mapIdx: -1};
-                respawnData = null;
-                startGameplay();
-            });
-        }
+        const { data, error } = await supabaseClient
+            .from('levels')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+        
+        transitionTo(() => {
+            currentLevelId = data.id;
+            loadMapData(data.data);
+            respawnPoint = {x: map.spawnX, y: map.spawnY, mapIdx: -1};
+            respawnData = null;
+            startGameplay();
+        });
     } catch(e) { showToast('Error loading level'); }
 }
+
 function restartLevel(){
     transitionTo(() => {
         map.pickups.forEach(p=>p.got=0);
         startGameplay(true); // resetAll = true to reset HP
     });
 }
+
 function playNextLevel(){
     let idx = levelList.findIndex(l => l.id === currentLevelId);
+    // Since we ordered descending, next level is actually idx - 1 if we want older levels, or just play the next in the list array
     if(idx !== -1 && idx < levelList.length - 1){
         playLevel(levelList[idx+1].id);
     } else {
@@ -56,40 +110,52 @@ function playNextLevel(){
 
 async function loadEditorLevel(id, duplicate=false){
     try {
-        const res = await fetch(`api.php?action=load&id=${id}`);
-        const json = await res.json();
-        if(json.success){
-            transitionTo(() => {
-                loadMapData(json.level.data);
-                if(duplicate){
-                    currentLevelId = null;
-                    document.getElementById('level-name-input').value = json.level.name + ' (Copy)';
-                } else {
-                    currentLevelId = json.level.id;
-                    document.getElementById('level-name-input').value = json.level.name;
-                }
-                startEditor();
-            });
-        }
+        const { data, error } = await supabaseClient
+            .from('levels')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+
+        transitionTo(() => {
+            loadMapData(data.data);
+            if(duplicate){
+                currentLevelId = null;
+                document.getElementById('level-name-input').value = data.name + ' (Copy)';
+            } else {
+                currentLevelId = data.id;
+                document.getElementById('level-name-input').value = data.name;
+            }
+            startEditor();
+        });
     } catch(e) { showToast('Error loading level'); }
 }
+
 async function duplicateLevel(id){
     try {
-        const res = await fetch(`api.php?action=load&id=${id}`);
-        const json = await res.json();
-        if(json.success){
-            const newName = json.level.name + ' (Copy)';
-            const saveRes = await fetch('api.php?action=save', {
-                method:'POST', body: JSON.stringify({id: null, name: newName, data: json.level.data})
-            });
-            const saveJson = await saveRes.json();
-            if(saveJson.success){
-                showToast("Level duplicated!");
-                fetchLevels('edit');
-            }
-        }
+        const { data: original, error: fetchErr } = await supabaseClient
+            .from('levels')
+            .select('*')
+            .eq('id', id)
+            .single();
+            
+        if (fetchErr) throw fetchErr;
+
+        const newName = original.name + ' (Copy)';
+        const { data: saved, error: saveErr } = await supabaseClient
+            .from('levels')
+            .insert([{ name: newName, data: original.data }])
+            .select()
+            .single();
+
+        if (saveErr) throw saveErr;
+        
+        showToast("Level duplicated!");
+        fetchLevels('edit');
     } catch(e) { showToast('Error duplicating level'); }
 }
+
 function createNewLevel(){
     currentLevelId = null;
     initEmptyMap(100);
@@ -99,7 +165,7 @@ function createNewLevel(){
 
 async function saveLevel(){
     const name = document.getElementById('level-name-input').value;
-    const data = {
+    const mapData = {
         cols: map.outdoor.cols, rows: map.outdoor.rows,
         tiles: map.outdoor.tiles,
         rooms: map.rooms,
@@ -112,17 +178,35 @@ async function saveLevel(){
         fog: map.fog,
         weather: map.weather
     };
+    
     try {
-        const res = await fetch('api.php?action=save', {
-            method:'POST', body: JSON.stringify({id: currentLevelId, name, data})
-        });
-        const json = await res.json();
-        if(json.success){
-            currentLevelId = json.id;
-            isMapUnsaved = false;
+        if (currentLevelId) {
+            // Update
+            const { data, error } = await supabaseClient
+                .from('levels')
+                .update({ name: name, data: mapData })
+                .eq('id', currentLevelId)
+                .select()
+                .single();
+            if (error) throw error;
+            currentLevelId = data.id;
+        } else {
+            // Insert
+            const { data, error } = await supabaseClient
+                .from('levels')
+                .insert([{ name: name, data: mapData }])
+                .select()
+                .single();
+            if (error) throw error;
+            currentLevelId = data.id;
         }
+        isMapUnsaved = false;
         return true;
-    } catch(e){ showToast('Error saving level'); return false; }
+    } catch(e){ 
+        console.error(e);
+        showToast('Error saving level'); 
+        return false; 
+    }
 }
 
 async function saveAndPlay(){
