@@ -226,6 +226,8 @@ function initInput(){
     bindTouch('btn-aim', () => {
         if(typeof aimMode !== 'undefined') {
             aimMode = aimMode === 'keyboard' ? 'mouse' : 'keyboard';
+            const btnAim = document.getElementById('btn-aim');
+            if(btnAim) btnAim.style.backgroundColor = aimMode === 'mouse' ? 'rgba(139,0,0,0.6)' : '';
             if(typeof updateHUD === 'function') updateHUD();
         }
     }, () => {});
@@ -237,18 +239,9 @@ function initInput(){
         if(typeof showToast === 'function') showToast(aimShoots ? "Tap to Shoot: ON" : "Tap to Shoot: OFF");
     }, () => {});
 
-    bindTouch('btn-auto-fire', () => {
-        autoFire = !autoFire;
-        keys.shoot = autoFire ? 1 : 0;
-        const btn = document.getElementById('btn-auto-fire');
-        if(btn) btn.style.backgroundColor = autoFire ? 'rgba(139,0,0,0.6)' : '';
-        if(typeof showToast === 'function') showToast(autoFire ? "Auto Fire: ON" : "Auto Fire: OFF");
-    }, () => {});
-
     // Free Aim Mechanic
     let aimTouchId = null;
     let aimShoots = true;
-    let autoFire = false;
     const gameContainer = document.getElementById('game-container');
 
     function updateMousePosFromTouch(touch) {
@@ -308,7 +301,7 @@ function initInput(){
                 if(e.changedTouches[i].identifier === aimTouchId) {
                     aimTouchId = null;
                     const shootBtn = document.getElementById('btn-shoot');
-                    if((!shootBtn || !shootBtn.classList.contains('active')) && !autoFire) {
+                    if(!shootBtn || !shootBtn.classList.contains('active')) {
                         keys.shoot = 0;
                     }
                 }
@@ -349,7 +342,7 @@ function initInput(){
                 if(e.changedTouches[i].identifier === jId) {
                     jActive = false;
                     jId = null;
-                    if(jKnob) jKnob.style.transform = `translate(-50%, -50%)`;
+                    if(jKnob) jKnob.style.transform = `translate(0px, 0px)`;
                     keys.l = 0;
                     keys.r = 0;
                     keys.u = 0;
@@ -377,7 +370,7 @@ function initInput(){
             dy = (dy/dist) * maxDist;
         }
         
-        jKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+        jKnob.style.transform = `translate(${dx}px, ${dy}px)`;
         
         // Deadzone & mapping to keys
         if(Math.abs(dx) > 15) {

@@ -136,10 +136,19 @@ function toggleInventory() {
         const invMenu = document.getElementById('inventory-menu');
         if(invMenu) invMenu.classList.remove('hidden');
         renderInventory();
+        
+        const mc = document.getElementById('mobile-controls');
+        if(mc) mc.classList.add('hidden');
     } else if(gameState === 'INVENTORY') {
         gameState = 'PLAY';
         const invMenu = document.getElementById('inventory-menu');
         if(invMenu) invMenu.classList.add('hidden');
+        
+        const mc = document.getElementById('mobile-controls');
+        const isForce = document.getElementById('set-force-mobile') && document.getElementById('set-force-mobile').checked;
+        if(isForce || 'ontouchstart' in window || navigator.maxTouchPoints > 0) {
+            if(mc) mc.classList.remove('hidden');
+        }
     }
 }
 
