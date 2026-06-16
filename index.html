@@ -1,0 +1,401 @@
+<script>window.onerror = function(m,s,l,c,e) { alert(m + ' at ' + l + ':' + c); }</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LELEMBUT — Side Scroll</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Canvas -->
+        <canvas id="gameCanvas" width="960" height="540"></canvas>
+        <div id="crt-overlay"></div>
+        <div id="screen-fade"></div>
+
+        <!-- Play HUD -->
+        <div id="ui-layer" class="hidden">
+            <div id="hud-left">
+                <div class="hud-item"><span class="hud-icon"><i class="fa-solid fa-heart" style="color:#ff3366;"></i></span><div id="hp-bg"><div id="hp-bar"></div></div></div>
+                <div class="hud-item" style="font-size: 24px; color: #fff;"><i class="fa-solid fa-battery-full" id="battery-icon"></i></div>
+                <div class="hud-item" id="lungs-container" style="display:none; font-size: 24px; color: #fff;"><i class="fa-solid fa-lungs" id="lungs-icon"></i></div>
+                <div class="hud-item" id="nv-container" style="display:none; font-size: 24px; color: #0f0;"><i class="fa-solid fa-glasses"></i></div>
+                <div class="hud-item"><span class="hud-icon"><i class="fa-solid fa-person-rifle"></i></span><span id="ammo-txt" style="display:inline-block; transition: transform 0.2s;">10/40</span> <i id="reload-icon" class="fa-solid fa-arrows-rotate fa-spin hidden" style="margin-left:8px; font-size:14px; color:#ffcc00;"></i></div>
+                <div class="hud-item" id="aim-lock-icon" style="display:none; color:#ffaa00;"><span class="hud-icon"><i class="fa-solid fa-crosshairs"></i></span><span id="aim-dir-txt"></span></div>
+            </div>
+            <div id="room-label" class="hidden"></div>
+            <div id="prompt-box" class="hidden">Tekan E</div>
+            <div id="dmg-flash"></div>
+            <div id="pickup-notifs"></div>
+            
+            <!-- Buff Container -->
+            <div id="buff-container" style="position:absolute; bottom: 20px; left: 20px; display:flex; flex-direction:column; gap: 5px;"></div>
+        </div>
+
+        <!-- Inventory Menu -->
+        <div id="inventory-menu" class="overlay-menu hidden" onclick="if(event.target===this) toggleInventory()">
+            <div style="background:rgba(0,0,0,0.85); width: 80%; max-width: 600px; padding: 20px; border-radius: 10px; border: 2px solid #555;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; width: 100%;">
+                    <h2 style="margin:0; font-size: 24px; color: #fff;"><i class="fa-solid fa-briefcase"></i> INVENTORY</h2>
+                    <button onclick="toggleInventory()" style="padding: 5px 15px; font-size: 20px; background: transparent; border: none; color: #f44; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                
+                <h3 style="color:#aaa; border-bottom: 1px solid #444; padding-bottom:5px; margin-bottom: 10px; text-align: left; width: 100%;">Stats</h3>
+                <div id="inv-stats" style="display:flex; gap: 15px; margin-bottom: 20px; width: 100%; color: #fff; font-size: 18px;">
+                </div>
+
+                <h3 style="color:#aaa; border-bottom: 1px solid #444; padding-bottom:5px; margin-bottom: 10px; text-align: left; width: 100%;">Weapons (Keys: 1, 2, 3)</h3>
+                <div id="inv-weapons" style="display:flex; gap: 10px; margin-bottom: 20px; width: 100%;">
+                </div>
+
+                <h3 style="color:#aaa; border-bottom: 1px solid #444; padding-bottom:5px; margin-bottom: 10px; text-align: left; width: 100%;">Consumables (Click to Use)</h3>
+                <div id="inv-items" style="display:flex; gap: 10px; flex-wrap: wrap; width: 100%;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Menu -->
+        <div id="main-menu" class="overlay-menu">
+            <h1 class="game-title">LELEMBUT</h1>
+            <button onclick="transitionTo('level-select')"><i class="fa-solid fa-play"></i> Play Game</button>
+            <button onclick="transitionTo('editor-select')"><i class="fa-solid fa-hammer"></i> Map Editor</button>
+            <button onclick="openSettings('main-menu')"><i class="fa-solid fa-gear"></i> Settings</button>
+            <button id="dev-menu-btn" onclick="transitionTo('dev-menu')" class="hidden" style="background:#8b0000; margin-top:20px;"><i class="fa-solid fa-wrench"></i> Dev Menu</button>
+        </div>
+
+        <!-- Pause Menu -->
+        <div id="pause-menu" class="overlay-menu hidden" style="background:rgba(0,0,0,0.9);">
+            <h2>PAUSED</h2>
+            <button onclick="togglePause()"><i class="fa-solid fa-play"></i> Resume</button>
+            <button onclick="restartLevel()"><i class="fa-solid fa-rotate-right"></i> Restart Level</button>
+            <button onclick="openSettings('pause-menu')"><i class="fa-solid fa-gear"></i> Settings</button>
+            <button id="pause-editor-btn" onclick="openEditorFromPause()" class="hidden" title="Map Editor"><i class="fa-solid fa-pen"></i></button>
+            <button onclick="transitionTo('main-menu')"><i class="fa-solid fa-house"></i> Main Menu</button>
+        </div>
+
+        <!-- Victory Menu -->
+        <div id="victory-menu" class="overlay-menu hidden" style="background:rgba(20,20,0,0.9);">
+            <h2 style="color:#ffd700;">LEVEL SELESAI!</h2>
+            <button onclick="playNextLevel()" style="background:#ccaa00;color:#000;"><i class="fa-solid fa-forward-step"></i> Next Level</button>
+            <button onclick="transitionTo('level-select')"><i class="fa-solid fa-list"></i> Level List</button>
+            <button onclick="transitionTo('main-menu')"><i class="fa-solid fa-house"></i> Main Menu</button>
+        </div>
+
+        <!-- Game Over Menu -->
+        <div id="gameover-menu" class="overlay-menu hidden" style="background:rgba(40,0,0,0.95);">
+            <h2 style="color:#ff3333; font-size:48px;">KAMU MATI</h2>
+            <button onclick="restartLevel()" style="background:#aa0000;color:#fff;"><i class="fa-solid fa-rotate-right"></i> Respawn</button>
+            <button onclick="transitionTo('level-select')"><i class="fa-solid fa-list"></i> Level List</button>
+            <button onclick="transitionTo('main-menu')"><i class="fa-solid fa-house"></i> Main Menu</button>
+        </div>
+
+        <!-- Dev Menu -->
+        <div id="dev-menu" class="overlay-menu hidden" style="background:rgba(20,0,40,0.95);">
+            <h2 style="color:#d400ff;">DEV MENU</h2>
+            <p style="color:#aaa; font-size:12px; margin-bottom:20px;">Overall Game Configuration</p>
+            <button onclick="transitionTo('main-menu')"><i class="fa-solid fa-house"></i> Main Menu</button>
+        </div>
+
+        <!-- Play Level Select -->
+        <div id="level-select" class="overlay-menu hidden">
+            <h2>Select Level to Play</h2>
+            <div id="play-level-list" class="list-container"></div>
+            <button onclick="transitionTo('main-menu')"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        </div>
+
+        <!-- Editor Level Select -->
+        <div id="editor-select" class="overlay-menu hidden">
+            <h2>Map Editor - Select Level</h2>
+            <button onclick="createNewLevel()" style="background:#0a400a; border-color:#0f0; margin-bottom: 15px;"><i class="fa-solid fa-plus"></i> Create Blank Level</button>
+            <div id="edit-level-list" class="list-container"></div>
+            <button onclick="transitionTo('main-menu')"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        </div>
+
+        <!-- Settings -->
+        <div id="settings-menu" class="overlay-menu hidden" style="background:rgba(15,15,20,0.95);">
+            <div style="background:#1a1a24; border:1px solid #445; padding:20px; border-radius:5px; width:500px; max-width:90%;">
+                <h2 style="margin-bottom:15px; border-bottom:1px solid #445; padding-bottom:5px;">SETTINGS</h2>
+                
+                <div style="display:flex; gap:2px; margin-bottom:15px;">
+                    <button class="set-tab-btn active" onclick="switchSetTab('controls')">Controls</button>
+                    <button class="set-tab-btn" onclick="switchSetTab('graphics')">Graphics</button>
+                    <button class="set-tab-btn" onclick="switchSetTab('music')">Music</button>
+                    <button class="set-tab-btn" onclick="switchSetTab('config')">Config</button>
+                </div>
+                
+                <div id="set-tab-controls" class="set-tab-content">
+                    <div class="bind-row"><span>Left:</span> <button id="bind-l" onclick="rebind('l')">A</button></div>
+                    <div class="bind-row"><span>Right:</span> <button id="bind-r" onclick="rebind('r')">D</button></div>
+                    <div class="bind-row"><span>Jump:</span> <button id="bind-jump" onclick="rebind('jump')">Space</button></div>
+                    <div class="bind-row"><span>Shoot:</span> <button id="bind-shoot" onclick="rebind('shoot')">Z</button></div>
+                    <div class="bind-row"><span>Reload:</span> <button id="bind-reload" onclick="rebind('reload')">R</button></div>
+                    <div class="bind-row"><span>Interact:</span> <button id="bind-interact" onclick="rebind('interact')">E</button></div>
+                    <div class="bind-row"><span>Toggle Aim:</span> <button id="bind-toggleAim" onclick="rebind('toggleAim')">Q</button></div>
+                    <div class="bind-row"><span>Toggle Light:</span> <button id="bind-toggleLight" onclick="rebind('toggleLight')">L</button></div>
+                </div>
+
+                <div id="set-tab-graphics" class="set-tab-content hidden">
+                    <div class="bind-row" style="flex-direction:column; align-items:flex-start; gap:5px;">
+                        <span>Resolution / Scale Mode:</span>
+                        <select id="ed-resolusi" onchange="changeResolution(this.value)" style="width:100%; padding:5px; background:#222; color:#fff; border:1px solid #444; font-family:'Special Elite';">
+                            <option value="1280">Standard (Smooth)</option>
+                            <option value="pixel">Crisp Pixel Art (HD)</option>
+                        </select>
+                    </div>
+                    <div class="bind-row" style="justify-content:flex-start; gap:10px;">
+                        <input type="checkbox" id="ed-hdr" onchange="updateGraphicsFilter()"> <label for="ed-hdr">Enable HDR Bloom</label>
+                    </div>
+                    <div class="bind-row" style="justify-content:flex-start; gap:10px;">
+                        <input type="checkbox" id="ed-crt" onchange="toggleCRT(this.checked)"> <label for="ed-crt">CRT Scanlines Effect</label>
+                    </div>
+                    <div class="bind-row" style="justify-content:flex-start; gap:10px;">
+                        <input type="checkbox" id="ed-film" onchange="toggleFilmMode(this.checked)"> <label for="ed-film">&#127916; Cinematic Letterbox (Film Mode)</label>
+                    </div>
+                    <div style="border-top:1px solid #445; margin-top:10px; padding-top:10px; display:flex; flex-direction:column; gap:8px;">
+                        <div style="display:flex; justify-content:space-between;">
+                            <label>Saturation:</label>
+                            <input type="range" id="gfx-sat" min="0" max="3" step="0.1" value="1" onchange="updateGraphicsFilter()">
+                        </div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <label>Contrast:</label>
+                            <input type="range" id="gfx-con" min="0" max="3" step="0.1" value="1" onchange="updateGraphicsFilter()">
+                        </div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <label>Brightness:</label>
+                            <input type="range" id="gfx-bri" min="0" max="3" step="0.1" value="1" onchange="updateGraphicsFilter()">
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:center; margin-top:15px;">
+                        <button onclick="resetGraphicsSettings()" style="width:100%; background:#8b0000;"><i class="fa-solid fa-rotate-left"></i> Reset to Default</button>
+                    </div>
+                </div>
+
+                <div id="set-tab-music" class="set-tab-content hidden">
+                    <p style="color:#888; text-align:center; padding:20px;">Coming Soon...</p>
+                </div>
+
+                <div id="set-tab-config" class="set-tab-content hidden">
+                    <div class="bind-row" style="justify-content:flex-start; gap:10px;">
+                        <input type="checkbox" id="set-devmode" onchange="toggleDevMode(this.checked)"> <label for="set-devmode">Enable Dev Mode</label>
+                    </div>
+                    <p style="color:#888; text-align:center; padding:10px; font-size:12px;">Enables the Dev Menu on the main screen for advanced configuration.</p>
+                </div>
+
+                <button onclick="transitionTo(settingsReturnMenu)" style="margin-top:20px; width:100%; background:#444;"><i class="fa-solid fa-check"></i> Close</button>
+            </div>
+        </div>
+
+        <!-- Map Editor HUD -->
+        <div id="editor-ui" class="hidden">
+            <!-- Top Ribbon -->
+            <div class="editor-ribbon">
+                <div class="editor-tabs" style="display:flex; gap:2px; width:100%; align-items:center;">
+                    <div style="display:flex; gap:2px;">
+                        <button class="toggle-ribbon-btn" onclick="toggleEditorRibbon()"><i class="fa-solid fa-eye"></i></button>
+                        <button class="ed-tab-btn active" onclick="switchEdTab('main')">Main</button>
+                        <button class="ed-tab-btn" onclick="switchEdTab('build')">Builds</button>
+                        <button class="ed-tab-btn" onclick="switchEdTab('config')">Config</button>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-left:auto; margin-right:15px; align-items:center;">
+                        <span id="ed-coords" style="color:#0f0; font-family:'Courier New', monospace; font-weight:bold; margin-right: 15px;">X:0 Y:0</span>
+                        <button class="ed-btn" onclick="saveLevel()" title="Save Map" style="background:transparent; color:#fff; border:none; font-size:1.4rem; cursor:pointer; padding:0;"><i class="fa-solid fa-floppy-disk"></i></button>
+                        <button class="ed-btn" onclick="saveAndPlay()" title="Save & Play" style="background:transparent; color:#0f0; border:none; font-size:1.4rem; cursor:pointer; padding:0;"><i class="fa-solid fa-play"></i></button>
+                        <button class="ed-btn" onclick="showEditorShortcuts()" title="Editor Shortcuts Info" style="background:transparent; color:#0df; border:none; font-size:1.4rem; cursor:pointer; padding:0;"><i class="fa-solid fa-circle-info"></i></button>
+                        <button class="ed-btn" onclick="attemptExitEditor()" title="Exit Editor" style="background:transparent; color:#f44; border:none; font-size:1.4rem; cursor:pointer; padding:0;"><i class="fa-solid fa-right-from-bracket"></i></button>
+                    </div>
+                </div>
+                
+                <div id="ribbon-content">
+                    <!-- MAIN TAB -->
+                    <div id="ed-tab-main" class="ed-tab-content">
+                        <div class="ribbon-group">
+                            <div class="group-title">File</div>
+                            <input type="text" id="level-name-input" placeholder="Level Name" value="My Level">
+                        </div>
+                        <div class="ribbon-group">
+                            <div class="group-title">Map Select</div>
+                            <select id="ed-map-select" onchange="changeMapLevel(this.value)">
+                                <option value="outdoor">Outdoor</option>
+                            </select>
+                            <button class="ed-btn" onclick="addRoom()" style="margin-top:2px;"><i class="fa-solid fa-plus"></i> ROOM</button>
+                        </div>
+                        <div class="ribbon-group" style="display:none;">
+                            <!-- Removed Tools group from here -->
+                        </div>
+                    </div>
+                    
+                    <!-- BUILDS TAB -->
+                    <div id="ed-tab-build" class="ed-tab-content hidden">
+                        <div class="ribbon-group">
+                            <div class="group-title">Blocks (Tiles)</div>
+                            <button class="ed-btn active" onclick="setEdTool(1)"><i class="fa-solid fa-cube"></i> Dirt</button>
+                            <button class="ed-btn" onclick="setEdTool(6)"><i class="fa-solid fa-bars"></i> Plat</button>
+                            <button class="ed-btn" onclick="setEdTool(7)"><i class="fa-solid fa-triangle-exclamation"></i> Spike</button>
+                            <button class="ed-btn" onclick="setEdTool(2)"><i class="fa-solid fa-gem"></i> Stone</button>
+                            <button class="ed-btn" onclick="setEdTool(3)"><i class="fa-solid fa-cubes"></i> Metal</button>
+                            <button class="ed-btn" onclick="setEdTool(4)"><i class="fa-solid fa-icicles"></i> Ice</button>
+                            <button class="ed-btn" onclick="setEdTool(5)"><i class="fa-solid fa-border-all"></i> Glass</button>
+                            <button class="ed-btn" onclick="setEdTool(17)"><i class="fa-solid fa-tree"></i> Wood</button>
+                            <button class="ed-btn" onclick="setEdTool(18)"><i class="fa-solid fa-layer-group"></i> Brick</button>
+                            <button class="ed-btn" onclick="setEdTool(19)"><i class="fa-solid fa-burst"></i> Crumb.Plat</button>
+                            <button class="ed-btn" onclick="setEdTool(20)"><i class="fa-solid fa-grip-horizontal"></i> Wood Plank</button>
+                            <button class="ed-btn" onclick="setEdTool(21)"><i class="fa-solid fa-xmark"></i> Cracked Wood</button>
+                            <button class="ed-btn" onclick="setEdTool(8)"><i class="fa-solid fa-arrow-up-from-bracket"></i> Bouncer</button>
+                            <button class="ed-btn" onclick="setEdTool(9)"><i class="fa-solid fa-water"></i> Water</button>
+                            <button class="ed-btn" onclick="setEdTool(10)"><i class="fa-solid fa-fire"></i> Lava</button>
+                            <button class="ed-btn" onclick="setEdTool(11)"><i class="fa-solid fa-bars"></i> Ladder</button>
+                        </div>
+                        <div class="ribbon-group">
+                            <div class="group-title">Backgrounds</div>
+                            <button class="ed-btn" onclick="setEdTool(12)"><i class="fa-solid fa-cube" style="opacity:0.5;"></i> BG Dirt</button>
+                            <button class="ed-btn" onclick="setEdTool(13)"><i class="fa-solid fa-gem" style="opacity:0.5;"></i> BG Stone</button>
+                            <button class="ed-btn" onclick="setEdTool(14)"><i class="fa-solid fa-cubes" style="opacity:0.5;"></i> BG Metal</button>
+                            <button class="ed-btn" onclick="setEdTool(15)"><i class="fa-solid fa-icicles" style="opacity:0.5;"></i> BG Ice</button>
+                            <button class="ed-btn" onclick="setEdTool(16)"><i class="fa-solid fa-border-all" style="opacity:0.5;"></i> BG Glass</button>
+                            <button class="ed-btn" onclick="setEdTool(22)"><i class="fa-solid fa-grip-horizontal" style="opacity:0.5;"></i> BG Wood</button>
+                        </div>
+                        <div class="ribbon-group">
+                            <div class="group-title">Decorations</div>
+                            <button class="ed-btn" onclick="setEdTool('dec_torch')"><i class="fa-solid fa-fire-flame-curved"></i> Torch</button>
+                            <button class="ed-btn" onclick="setEdTool('dec_tree')"><i class="fa-solid fa-tree"></i> Tree</button>
+                            <button class="ed-btn" onclick="setEdTool('dec_house')"><i class="fa-solid fa-house"></i> House</button>
+                            <button class="ed-btn" onclick="setEdTool('dec_grass')"><i class="fa-solid fa-leaf"></i> Grass</button>
+                            <button class="ed-btn" onclick="setEdTool('dec_lamp')"><i class="fa-solid fa-lightbulb"></i> Lamp</button>
+                            <button class="ed-btn" onclick="setEdTool('dec_car')"><i class="fa-solid fa-car"></i> Car</button>
+                        </div>
+                        <div class="ribbon-group">
+                            <div class="group-title">Entities</div>
+                            <button class="ed-btn" onclick="setEdTool('spawn')"><i class="fa-solid fa-flag"></i> Spawn</button>
+                            <button class="ed-btn" onclick="setEdTool('enemy')"><i class="fa-solid fa-skull"></i> Enemy</button>
+                            <button class="ed-btn" onclick="setEdTool('kuyang')"><i class="fa-solid fa-ghost"></i> Kuyang</button>
+                            <button class="ed-btn" onclick="setEdTool('door')"><i class="fa-solid fa-door-open"></i> Door</button>
+                            <button class="ed-btn" onclick="setEdTool('check')"><i class="fa-solid fa-location-dot"></i> Check</button>
+                            <button class="ed-btn" onclick="setEdTool('end')"><i class="fa-solid fa-trophy"></i> Goal</button>
+                        </div>
+                        <div class="ribbon-group">
+                            <div class="group-title">Items</div>
+                            <button class="ed-btn" onclick="setEdTool('gun_mg')"><i class="fa-solid fa-gun"></i> Gun MG</button>
+                            <button class="ed-btn" onclick="setEdTool('gun_sniper')"><i class="fa-solid fa-crosshairs"></i> Gun Snip</button>
+                            <button class="ed-btn" onclick="setEdTool('medkit')"><i class="fa-solid fa-suitcase-medical"></i> Medkit</button>
+                            <button class="ed-btn" onclick="setEdTool('potion_speed')"><i class="fa-solid fa-flask"></i> Speed Pot</button>
+                            <button class="ed-btn" onclick="setEdTool('potion_jump')"><i class="fa-solid fa-flask"></i> Jump Pot</button>
+                            <button class="ed-btn" onclick="setEdTool('potion_shield')"><i class="fa-solid fa-shield"></i> Shield Pot</button>
+                            <button class="ed-btn" onclick="setEdTool('grenade')"><i class="fa-solid fa-bomb"></i> Grenade</button>
+                            <button class="ed-btn" onclick="setEdTool('landmine')"><i class="fa-solid fa-compact-disc"></i> Landmine</button>
+                            <button class="ed-btn" onclick="setEdTool('smoke')"><i class="fa-solid fa-cloud"></i> Smoke Gr.</button>
+                            <button class="ed-btn" onclick="setEdTool('ammo')"><i class="fa-solid fa-box"></i> Ammo</button>
+                            <button class="ed-btn" onclick="setEdTool('ammo_mg')"><i class="fa-solid fa-boxes-stacked"></i> Ammo MG</button>
+                            <button class="ed-btn" onclick="setEdTool('ammo_sniper')"><i class="fa-solid fa-box-open"></i> Ammo Snip</button>
+                            <button class="ed-btn" onclick="setEdTool('hp')"><i class="fa-solid fa-heart"></i> HP</button>
+                            <button class="ed-btn" onclick="setEdTool('battery')"><i class="fa-solid fa-battery-full"></i> Battery</button>
+                            <button class="ed-btn" onclick="setEdTool('nightvision')"><i class="fa-solid fa-glasses"></i> Night Vision</button>
+                        </div>
+                    </div>
+
+                    <!-- CONFIG TAB -->
+                    <div id="ed-tab-config" class="ed-tab-content hidden">
+                        <div class="ribbon-group">
+                            <div class="group-title">Map Settings</div>
+                            <div style="display:flex; flex-direction:column; gap:5px; margin-top:5px; font-size:12px; color:#ccc;">
+                                <div>Map Size: <input type="number" id="map-w-inp" value="100" style="width:50px; background:#222; color:#fff; border:1px solid #444;"> x <input type="number" id="map-h-inp" value="15" style="width:40px; background:#222; color:#fff; border:1px solid #444;"> <button onclick="resizeMap()" style="padding:2px 5px; min-width:auto; font-size:12px;">Apply</button></div>
+                                <div>BG Y-Offset: <input type="number" id="bg-y-inp" value="0" style="width:50px; background:#222; color:#fff; border:1px solid #444;" onchange="map.bgY=parseInt(this.value)||0"></div>
+                            </div>
+                        </div>
+                        <div class="ribbon-group">
+                            <div class="group-title">Atmosphere</div>
+                            <div style="display:flex; align-items:center; margin-top:5px; gap:10px;">
+                                <div style="display:flex; flex-direction:column; gap:2px;">
+                                    <label style="font-size:10px; color:#aaa;">Fog Intensity</label>
+                                    <input type="range" id="ed-fog" min="0" max="1" step="0.1" value="0" style="width:100px;" onchange="updateAtmosphere()">
+                                </div>
+                                <div style="display:flex; flex-direction:column; gap:2px; padding:4px; background:#222; border:1px solid #444;">
+                                    <label style="font-size:12px; color:#fff; display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="ed-weather-rain" onchange="updateAtmosphere()"> <i class="fa-solid fa-cloud-showers-water"></i> Rain</label>
+                                    <label style="font-size:12px; color:#fff; display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="ed-weather-mist" onchange="updateAtmosphere()"> <i class="fa-solid fa-smog"></i> Mist</label>
+                                    <label style="font-size:12px; color:#fff; display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="ed-weather-lightning" onchange="updateAtmosphere()"> <i class="fa-solid fa-bolt" style="color:#ffee44;"></i> Lightning</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ribbon-group">
+                            <div class="group-title">Editor View Mode</div>
+                            <select id="ed-view-mode" onchange="changeViewMode(this.value)" style="margin-top:5px; padding:4px; background:#222; color:#fff; border:1px solid #444; font-family:'Special Elite';">
+                                <option value="flat">⬛ Flat (Build)</option>
+                                <option value="light">☀️ Light Mode</option>
+                                <option value="preview">🔦 Preview (Dark)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Hint -->
+            <div id="editor-footer" style="position:absolute; bottom:50px; left:50%; transform:translateX(-50%); display:flex; gap:15px; align-items:center; z-index:100; pointer-events:none;">
+                <button class="ed-btn" onclick="setEdTool('select')" title="Select Tool" style="pointer-events:auto; padding:12px 24px; background:rgba(40,40,40,0.9); color:#fff; border-radius:25px; font-size:20px; border:2px solid #666; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.5); transition:transform 0.1s;"><i class="fa-solid fa-arrow-pointer"></i></button>
+                <button class="ed-btn" onclick="setEdTool(0)" title="Erase Tool" style="pointer-events:auto; padding:12px 24px; background:rgba(40,40,40,0.9); color:#fff; border-radius:25px; font-size:20px; border:2px solid #666; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.5); transition:transform 0.1s;"><i class="fa-solid fa-eraser"></i></button>
+            </div>
+        </div>
+
+        <div id="toast" class="hidden"></div>
+    </div>
+    <script>
+        function toggleEditorRibbon(){ 
+            document.getElementById('ribbon-content').classList.toggle('hidden'); 
+            document.getElementById('editor-footer').classList.toggle('hidden');
+        }
+        function switchEdTab(tab){
+            document.querySelectorAll('.ed-tab-content').forEach(e=>e.classList.add('hidden'));
+            document.querySelectorAll('.ed-tab-btn').forEach(b=>b.classList.remove('active'));
+            document.getElementById('ed-tab-'+tab).classList.remove('hidden');
+            event.target.classList.add('active');
+        }
+
+        function switchSetTab(tab){
+            document.querySelectorAll('.set-tab-content').forEach(e=>e.classList.add('hidden'));
+            document.querySelectorAll('.set-tab-btn').forEach(b=>b.classList.remove('active'));
+            document.getElementById('set-tab-'+tab).classList.remove('hidden');
+            event.target.classList.add('active');
+        }
+    </script>
+    <script src="js/globals.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/input.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/camera.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/physics.js"></script>
+    <script src="js/lighting.js"></script>
+    <script src="js/entities.js"></script>
+    <script src="js/render.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/editor.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/settings.js"></script>
+    <div id="ed-shortcuts-modal" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; display:flex; justify-content:center; align-items:center;">
+        <div style="background:#222; border:2px solid #555; border-radius:8px; padding:20px; width:400px; color:#fff; font-family:'Courier New', monospace;">
+            <h2 style="margin-top:0; color:#0df; border-bottom:1px solid #444; padding-bottom:10px;">Editor Shortcuts</h2>
+            <ul style="list-style:none; padding:0; line-height:1.6; font-size:14px;">
+                <li><b>W, A, S, D</b> / <b>Arrow Keys</b> : Move Camera</li>
+                <li><b>Ctrl + Arrow Keys</b> : Jump to Map Edge</li>
+                <li><b>Left Click / Drag</b> : Place Block/Entity</li>
+                <li><b>Right Click / Drag</b> : Erase (Remove FG first, then BG)</li>
+                <li><b>Middle Click</b> : Copy Tool under cursor (Pipette)</li>
+                <li><b>V</b> : Selection Tool (Drag to select)</li>
+                <li><b>X</b> : Eraser Tool</li>
+                <li><b>Ctrl + Z</b> : Undo</li>
+                <li><b>Ctrl + Y</b> / <b>Ctrl+Shift+Z</b> : Redo</li>
+                <li><b>N / M</b> : Zoom Out / Zoom In</li>
+                <li><b>Del / Backspace</b> : Delete Selection</li>
+                <li><b>Esc</b> : Exit Editor</li>
+            </ul>
+            <button onclick="document.getElementById('ed-shortcuts-modal').classList.add('hidden')" style="width:100%; margin-top:15px; background:#444; color:#fff; border:none; padding:10px; cursor:pointer; font-weight:bold; border-radius:4px;">Close</button>
+        </div>
+    </div>
+    <script>
+        function showEditorShortcuts() {
+            document.getElementById('ed-shortcuts-modal').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
