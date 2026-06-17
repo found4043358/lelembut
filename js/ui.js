@@ -219,96 +219,87 @@ function closeCustomConfirm() {
 }
 
 // ================= HISTORY / BACK BUTTON MANAGEMENT =================
-window.addEventListener('load', () => {
-    // Initialize our Single Page App (SPA) history state
-    history.replaceState({id: 'home'}, '', '');
-    // Push 5 buffer states to prevent rapid spamming from immediately exiting the app
-    for(let i=0; i<5; i++) history.pushState({id: 'app'}, '', '');
-});
-
-window.addEventListener('popstate', (e) => {
-    // User pressed Back (Android hardware back button or browser back).
-    let handled = false;
-    
-    // If the exit confirmation is already open, don't stack another one
+// Intercepted by Flutter's PopScope calling handleHardwareBack()
+window.handleHardwareBack = function() {
+    // If the exit confirmation is already open, pressing back should dismiss it
     const customAlert = document.getElementById('custom-alert-overlay');
     if (customAlert && !customAlert.classList.contains('hidden')) {
-        // A dialog is open — pressing back should dismiss it
         closeCustomConfirm();
-        history.pushState({id: 'app'}, '', '');
-        return;
+        return true;
     }
 
     // Check which overlay/state is active, in order of Z-index / priority:
     const selectOverlay = document.getElementById('custom-select-overlay');
-    
     if (selectOverlay && selectOverlay.style.opacity === '1') {
         if(typeof closeCustomSelectOverlay === 'function') closeCustomSelectOverlay();
-        handled = true;
+        return true;
     }
-    else if (typeof isEditingLayout !== 'undefined' && isEditingLayout) {
+    if (typeof isEditingLayout !== 'undefined' && isEditingLayout) {
         if(typeof cancelMobileLayout === 'function') cancelMobileLayout();
-        handled = true;
+        return true;
     } 
-    else if (document.getElementById('settings-menu') && !document.getElementById('settings-menu').classList.contains('hidden')) {
+    if (document.getElementById('settings-menu') && !document.getElementById('settings-menu').classList.contains('hidden')) {
         transitionTo(typeof settingsReturnMenu !== 'undefined' ? settingsReturnMenu : 'main-menu');
-        handled = true;
+        return true;
     } 
-    else if (document.getElementById('dev-menu') && !document.getElementById('dev-menu').classList.contains('hidden')) {
+    if (document.getElementById('dev-menu') && !document.getElementById('dev-menu').classList.contains('hidden')) {
         transitionTo('main-menu');
-        handled = true;
+        return true;
     }
-    else if (typeof gameState !== 'undefined') {
+    if (typeof gameState !== 'undefined') {
         if (gameState === 'INVENTORY') {
             if(typeof toggleInventory === 'function') toggleInventory();
-            handled = true;
+            return true;
         } 
-        else if (gameState === 'PAUSE') {
+        if (gameState === 'PAUSE') {
+            // Already paused, if they press back again, they want to exit to main menu or show confirm
+            _showExitConfirm();
+            return true;
+        } 
+        if (gameState === 'PLAY') {
+            // In game, back should pause
             if(typeof togglePause === 'function') togglePause();
-            handled = true;
+            return true;
         } 
-        else if (gameState === 'PLAY') {
-            if(typeof togglePause === 'function') togglePause();
-            handled = true;
-        } 
-        else if (gameState === 'EDITOR') {
+        if (gameState === 'EDITOR') {
             transitionTo('main-menu');
-            handled = true;
+            return true;
         }
     }
     
-    // Check other full-screen menus if not handled
-    if (!handled) {
-        if (document.getElementById('level-select') && !document.getElementById('level-select').classList.contains('hidden')) {
-            transitionTo('main-menu');
-            handled = true;
-        } 
-        else if (document.getElementById('editor-select') && !document.getElementById('editor-select').classList.contains('hidden')) {
-            transitionTo('main-menu');
-            handled = true;
-        }
+    // Check other full-screen menus
+    if (document.getElementById('level-select') && !document.getElementById('level-select').classList.contains('hidden')) {
+        transitionTo('main-menu');
+        return true;
+    } 
+    if (document.getElementById('editor-select') && !document.getElementById('editor-select').classList.contains('hidden')) {
+        transitionTo('main-menu');
+        return true;
     }
 
-    if (handled) {
-        // We intercepted the back action — push a buffer state back.
-        history.pushState({id: 'app'}, '', '');
-    } else {
-        // Back would exit the app — push a buffer state back and ask for confirmation.
-        history.pushState({id: 'app'}, '', '');
-        _showExitConfirm();
-    }
-});
+    // Main Menu or unknown state: ask for exit confirmation
+    _showExitConfirm();
+    return true; // We handled it by showing the UI, flutter should not pop
+};
 
 function _showExitConfirm() {
-    showCustomConfirm(
-        'Keluar Game?',
-        'Apakah kamu yakin ingin menutup game ini?',
-        () => {
-            // Confirmed: try to close the window/tab (works in WebView/Capacitor)
-            try { window.close(); } catch(err) {}
-            // Fallback for browser: navigate back past all history
-            setTimeout(() => { history.go(-20); }, 150);
-        },
-        null // Cancel: do nothing, stay in app
-    );
+    if (typeof confirmExit === 'function') {
+        confirmExit();
+    } else {
+        showCustomConfirm(
+            'Keluar Game?',
+            'Apakah kamu yakin ingin menutup game ini?',
+            () => {
+                if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+                    window.flutter_inappwebview.callHandler('exitApp');
+                } else if(typeof navigator.app !== 'undefined' && navigator.app.exitApp) {
+                    navigator.app.exitApp();
+                } else {
+                    try { window.close(); } catch(err) {}
+                    setTimeout(() => { history.go(-20); }, 150);
+                }
+            },
+            null
+        );
+    }
 }
