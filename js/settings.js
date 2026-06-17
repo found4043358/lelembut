@@ -49,6 +49,8 @@ function loadSettings(){
                 document.getElementById('ed-crt').checked = s.crt || false;
                 document.getElementById('ed-film').checked = s.film || false;
                 document.getElementById('ed-resolusi').value = s.resolusi || '1280';
+                document.getElementById('ed-resolusi').dispatchEvent(new Event('change'));
+                
                 document.getElementById('gfx-sat').value = s.sat || 1;
                 document.getElementById('gfx-con').value = s.con || 1;
                 document.getElementById('gfx-bri').value = s.bri || 1;
@@ -173,10 +175,10 @@ function applyMobileLayout() {
             
             // Apply position if exists
             if(mcLayoutData[id]) {
-                btn.style.left = mcLayoutData[id].left;
-                btn.style.top = mcLayoutData[id].top;
-                btn.style.right = 'auto'; // Clear right/bottom if we use left/top absolute positioning
-                btn.style.bottom = 'auto';
+                if (mcLayoutData[id].left !== undefined) btn.style.left = mcLayoutData[id].left;
+                if (mcLayoutData[id].top !== undefined) btn.style.top = mcLayoutData[id].top;
+                if (mcLayoutData[id].right !== undefined) btn.style.right = mcLayoutData[id].right;
+                if (mcLayoutData[id].bottom !== undefined) btn.style.bottom = mcLayoutData[id].bottom;
             }
         });
     }
@@ -288,7 +290,9 @@ function saveMobileLayout() {
         btn.onpointerdown = null; // remove drag listener
         data[btn.id] = {
             left: btn.style.left,
-            top: btn.style.top
+            top: btn.style.top,
+            right: btn.style.right,
+            bottom: btn.style.bottom
         };
     });
     
