@@ -211,9 +211,10 @@ function lightDraw(ctx, px, py) {
         map.pickups.forEach(pk => {
             const mIdx = pk.mapIdx !== undefined ? pk.mapIdx : -1;
             if (mIdx === currentMapIdx && pk.t === 'end') {
-            drawPointLight(pk.x + TS / 2, pk.y + TS / 2, 300 * flicker, 0.9, 80);
-        }
-    });
+                drawPointLight(pk.x + TS / 2, pk.y + TS / 2, 300 * flicker, 0.9, 80);
+            }
+        });
+    }
 
     // Lava Glow
     const cMap = getActiveMap();
