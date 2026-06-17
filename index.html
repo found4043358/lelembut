@@ -601,7 +601,7 @@
                         if(typeof Audio.playSfx === 'function') Audio.playSfx('click');
                         // Wait a tiny bit for the sound to play before exiting
                         setTimeout(() => {
-                            Audio.stopBGM();
+                            if(typeof Audio.stopAll === 'function') Audio.stopAll();
                             Audio.setMusicVolume(0);
                             Audio.setSfxVolume(0);
                             if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {

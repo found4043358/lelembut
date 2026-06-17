@@ -76,6 +76,7 @@ const Audio = {
         src.buffer = this.sfx[name];
         const g = this._g(vol);
         src.connect(g);
+        src.onended = () => { g.disconnect(); };
         src.start(0);
     },
     shoot(weaponType){
@@ -85,7 +86,9 @@ const Audio = {
         } else if(weaponType === 'mg' || weaponType === 'pistol') {
             this.playSfx('shoot_mg', 0.5);
         } else {
-            const o=this.ctx.createOscillator(),g=this._g(.25);o.connect(g);o.type='square';const t=this.ctx.currentTime;o.frequency.setValueAtTime(180,t);o.frequency.exponentialRampToValueAtTime(40,t+.1);g.gain.exponentialRampToValueAtTime(.001,t+.1);o.start();o.stop(t+.1);
+            const o=this.ctx.createOscillator(),g=this._g(.25);o.connect(g);o.type='square';const t=this.ctx.currentTime;o.frequency.setValueAtTime(180,t);o.frequency.exponentialRampToValueAtTime(40,t+.1);g.gain.exponentialRampToValueAtTime(.001,t+.1);
+            o.onended = () => { g.disconnect(); };
+            o.start();o.stop(t+.1);
         }
     },
     reload(){
@@ -117,6 +120,21 @@ const Audio = {
             if(this.heartbeatAudio.paused) this.heartbeatAudio.play().catch(()=>{});
         } else {
             if(!this.heartbeatAudio.paused) this.heartbeatAudio.pause();
+        }
+    },
+    stopAll() {
+        if(this.bgm) this.bgm.pause();
+        if(this.menuBgm) this.menuBgm.pause();
+        if(this.walkAudio) this.walkAudio.pause();
+        if(this.heartbeatAudio) this.heartbeatAudio.pause();
+        if(this.rainAudio) this.rainAudio.pause();
+        if(this.ctx && this.ctx.state === 'running') {
+            this.ctx.suspend().catch(()=>{});
+        }
+    },
+    resumeAll() {
+        if(this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume().catch(()=>{});
         }
     },
     rain(isRaining){
