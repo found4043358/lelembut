@@ -192,13 +192,8 @@ function startMobileLayoutEditor() {
     
     document.querySelectorAll('.mc-btn').forEach(btn => {
         btn.classList.add('edit-mode');
-        // Convert to percentage values relative to container so it works across different screen sizes
-        const pLeft = (btn.offsetLeft / mc.clientWidth * 100) + '%';
-        const pTop = (btn.offsetTop / mc.clientHeight * 100) + '%';
-        btn.style.left = pLeft;
-        btn.style.top = pTop;
-        btn.style.right = 'auto';
-        btn.style.bottom = 'auto';
+        // Do not convert to absolute percentages immediately, let CSS handle it.
+        // It will only be converted when dragged.
         
         // Add drag listener
         btn.onpointerdown = startDragBtn;
@@ -233,6 +228,16 @@ function startDragBtn(e) {
     if(!isEditingLayout) return;
     e.preventDefault();
     draggedBtn = e.currentTarget;
+    
+    // Get unscaled position relative to parent to avoid jump when scaled
+    const offX = draggedBtn.offsetLeft;
+    const offY = draggedBtn.offsetTop;
+    
+    draggedBtn.style.left = offX + 'px';
+    draggedBtn.style.top = offY + 'px';
+    draggedBtn.style.bottom = 'auto';
+    draggedBtn.style.right = 'auto';
+
     const rect = draggedBtn.getBoundingClientRect();
     dragOffsetX = e.clientX - rect.left;
     dragOffsetY = e.clientY - rect.top;
@@ -245,8 +250,20 @@ function doDragBtn(e) {
     if(!draggedBtn) return;
     let x = e.clientX - dragOffsetX;
     let y = e.clientY - dragOffsetY;
-    let pctX = (x / window.innerWidth) * 100;
-    let pctY = (y / window.innerHeight) * 100;
+    
+    // We adjust by offsetParent's dimensions instead of window to support Safe Zone Padding
+    const parent = draggedBtn.offsetParent || document.body;
+    
+    let pctX = (x / parent.clientWidth) * 100;
+    let pctY = (y / parent.clientHeight) * 100;
+    
+    // Add offsetLeft back because x was relative to rect.left but we need relative to parent
+    // Wait, x/y calculation above assumes draggedBtn's top-left is exactly at e.clientX - dragOffsetX.
+    // That means x,y are absolute screen coordinates if we use clientX/clientY.
+    // Instead of using parent.clientWidth directly for screen coords, let's just use window.
+    pctX = (x / window.innerWidth) * 100;
+    pctY = (y / window.innerHeight) * 100;
+    
     draggedBtn.style.left = pctX + '%';
     draggedBtn.style.top = pctY + '%';
 }
