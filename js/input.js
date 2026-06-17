@@ -409,13 +409,18 @@ function initInput(){
             dy = (dy/dist) * maxDist;
         }
         
-        // Update visual knob smoothly (flexible 360 degrees)
+        // Kembalikan visual ke 4 arah (snap ke axis terdekat)
+        if (Math.abs(dx) > Math.abs(dy)) {
+            dy = 0;
+        } else {
+            dx = 0;
+        }
+        
         jKnob.style.transform = `translate(${dx}px, ${dy}px)`;
         
         // Deadzone & mapping to keys
         keys.l = 0; keys.r = 0; keys.u = 0; keys.d = 0;
         
-        // Snap logic for 8-way directional movement (so it's not stiff)
         if(Math.abs(dx) > 15) {
             keys.l = dx < 0 ? 1 : 0;
             keys.r = dx > 0 ? 1 : 0;
