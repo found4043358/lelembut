@@ -169,7 +169,9 @@ function initInput(){
     // Mobile Touch Controls
     const mobileControls = document.getElementById('mobile-controls');
     if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-        if(mobileControls) mobileControls.classList.remove('hidden');
+        if(mobileControls && typeof gameState !== 'undefined' && (gameState === 'PLAY' || gameState === 'PAUSE')) {
+            mobileControls.classList.remove('hidden');
+        }
         const btnMainFs = document.getElementById('btn-main-fullscreen');
         if(btnMainFs) btnMainFs.classList.remove('hidden');
     }
