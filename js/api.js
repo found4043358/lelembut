@@ -58,7 +58,7 @@ window.migrateToSupabase = async function() {
 async function fetchLevels(mode){
     try {
         const list = document.getElementById(mode==='play'?'play-level-list':'edit-level-list');
-        list.innerHTML = '<div style="color:#666; text-align:center; padding:20px;">Loading levels... <i class="fa-solid fa-spinner fa-spin"></i></div>';
+        list.innerHTML = '<div style="padding:40px 0;"><div class="horror-loader"></div></div>';
         
         const { data: levels, error } = await supabaseClient
             .from('levels')
@@ -70,6 +70,8 @@ async function fetchLevels(mode){
         list.innerHTML = '';
         if(levels && levels.length>0){
             levelList = levels;
+            const container = document.createElement('div');
+            container.className = 'fade-in-list';
             levels.forEach(l=>{
                 const d = document.createElement('div'); d.className='level-item';
                 if(mode==='play'){
@@ -82,9 +84,10 @@ async function fetchLevels(mode){
                         <button class="ed-btn" onclick="loadEditorLevel(${l.id})"><i class="fa-solid fa-pen"></i> Edit</button>
                     </div>`;
                 }
-                list.appendChild(d);
+                container.appendChild(d);
             });
-        } else { list.innerHTML = '<div style="color:#666">No levels found.</div>'; }
+            list.appendChild(container);
+        } else { list.innerHTML = '<div style="color:#666" class="fade-in-list">No levels found.</div>'; }
     } catch(e){ console.error(e); }
 }
 
@@ -117,25 +120,25 @@ async function moveLevel(id, direction) {
 }
 
 async function playLevel(id){
-    try {
-        const { data, error } = await supabaseClient
-            .from('levels')
-            .select('*')
-            .eq('id', id)
-            .single();
+    transitionTo(async () => {
+        try {
+            const { data, error } = await supabaseClient
+                .from('levels')
+                .select('*')
+                .eq('id', id)
+                .single();
 
-        if (error) throw error;
-        
-        transitionTo(() => {
+            if (error) throw error;
+            
             currentLevelId = data.id;
             loadMapData(data.data);
             respawnPoint = {x: map.spawnX, y: map.spawnY, mapIdx: -1};
             respawnData = null;
             startGameplay();
-        });
-    } catch(e) { 
-        showToast('Error loading level'); 
-    }
+        } catch(e) { 
+            showToast('Error loading level'); 
+        }
+    });
 }
 
 function restartLevel(){
@@ -268,10 +271,12 @@ async function saveLevel(){
 async function saveAndPlay(){
     const ok = await saveLevel();
     if(ok){
-        stopEditor();
-        respawnPoint = {x: map.spawnX, y: map.spawnY, mapIdx: -1};
-        respawnData = null;
-        startGameplay();
+        transitionTo(() => {
+            stopEditor();
+            respawnPoint = {x: map.spawnX, y: map.spawnY, mapIdx: -1};
+            respawnData = null;
+            startGameplay();
+        });
     }
 }
 

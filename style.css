@@ -28,8 +28,16 @@ canvas{display:block;}
 @keyframes notifSlideIn { 0% { opacity: 0; transform: translateX(-20px) scale(0.8); } 100% { opacity: 1; transform: translateX(0) scale(1); } }
 @keyframes notifSlideOut { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(10px); } }
 
-#screen-fade{position:absolute;top:0;left:0;width:100vw;height:100vh;background:#000;opacity:0;pointer-events:none;z-index:9999;transition:opacity 0.4s ease;}
+#screen-fade{position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;opacity:0;pointer-events:none;z-index:999999;transition:opacity 0.3s ease-in-out;}
 #screen-fade.active{opacity:1;pointer-events:auto;}
+
+@keyframes gameStartFade {
+    0% { filter: brightness(0); opacity: 0; }
+    100% { filter: brightness(1); opacity: 1; }
+}
+.game-start-anim {
+    animation: gameStartFade 5s ease-out forwards;
+}
 
 .hidden{display:none!important}
 
@@ -148,6 +156,7 @@ button.ed-btn.active{background:#ff2222;color:#fff;border-color:#ff0000;text-sha
     height: 100vh;
     z-index: 150;
     pointer-events: none;
+    box-sizing: border-box;
 }
 
 #mobile-controls:not(.hidden) {
@@ -221,4 +230,103 @@ button.ed-btn.active{background:#ff2222;color:#fff;border-color:#ff0000;text-sha
     .game-title { font-size: 42px; margin-bottom: 15px; }
     button { padding: 5px 15px; margin: 3px; font-size: 15px; min-width: 160px; }
     h2 { font-size: 24px; margin-bottom: 10px; }
+}
+
+/* Horror Menu Effects */
+.horror-menu {
+    overflow: hidden;
+    background: transparent !important;
+}
+
+.horror-menu::before {
+    content: "";
+    position: absolute;
+    top: -5%;
+    left: -5%;
+    width: 110%;
+    height: 110%;
+    background: url('background_menu.webp') center/cover no-repeat;
+    z-index: -2;
+    animation: slow-pan 20s ease-in-out infinite alternate;
+}
+
+.horror-menu::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        repeating-linear-gradient(to bottom, transparent 0, transparent 2px, rgba(0, 0, 0, 0.4) 2px, rgba(0, 0, 0, 0.4) 4px),
+        radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.95) 60%, rgba(0, 0, 0, 1) 100%);
+    background-color: rgba(15, 0, 5, 0.4);
+    z-index: -1;
+    pointer-events: none;
+    box-shadow: inset 0 0 250px rgba(0,0,0,1);
+    background-size: 100% 4px, 100% 100%;
+    animation: spooky-flicker 5s infinite, vhs-scroll 10s linear infinite, vhs-glitch 3s infinite;
+}
+
+@keyframes slow-pan {
+    0% { transform: scale(1.1) translate(0, 0); }
+    100% { transform: scale(1.15) translate(-1%, -1%); }
+}
+
+@keyframes spooky-flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.85; }
+    55% { opacity: 0.95; }
+    56% { opacity: 0.8; }
+    60% { opacity: 1; }
+}
+
+@keyframes vhs-scroll {
+    from { background-position: 0 0, 0 0; }
+    to { background-position: 0 100vh, 0 0; }
+}
+
+@keyframes vhs-glitch {
+    0%, 92%, 100% { transform: scale(1.1) translate(0, 0) skew(0deg); }
+    94% { transform: scale(1.1) translate(-3px, 2px) skew(1deg); filter: hue-rotate(45deg); }
+    96% { transform: scale(1.1) translate(3px, -2px) skew(-1deg); filter: hue-rotate(-45deg); }
+}
+
+.horror-menu .game-title {
+    color: #900;
+    text-shadow: 0 0 15px #f00, 0 0 30px #400, 2px 2px 0 #000;
+}
+
+.horror-menu button {
+    background: rgba(30, 0, 0, 0.7);
+    border: 1px solid #500;
+    color: #ccc;
+    box-shadow: inset 0 0 15px #000, 0 0 10px rgba(255,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.horror-menu button:hover {
+    background: rgba(100, 0, 0, 0.9);
+    border: 1px solid #f00;
+    color: #fff;
+    box-shadow: inset 0 0 25px #400, 0 0 20px rgba(255,0,0,0.5);
+    transform: scale(1.05);
+}
+
+.horror-loader {
+    width: 40px; height: 40px;
+    border: 4px solid #300; border-top: 4px solid #f00;
+    border-radius: 50%;
+    animation: spin 1s linear infinite, spooky-flicker 2s infinite;
+    margin: 0 auto;
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+.fade-in-list {
+    animation: fadeInList 0.8s ease-out forwards;
+    opacity: 0;
+}
+@keyframes fadeInList {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }

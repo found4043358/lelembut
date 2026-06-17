@@ -18,28 +18,47 @@ function openEditorFromPause() {
         startEditor();
     });
 }
+
 function transitionTo(targetMenuOrFunction) {
     if(isTransitioning) return;
     isTransitioning = true;
     const fade = document.getElementById('screen-fade');
-    fade.classList.add('active');
     
-    setTimeout(() => {
+    // 1. Start fading to black
+    if(fade) fade.classList.add('active');
+    
+    // 2. Wait exactly 300ms for the screen to become completely black
+    setTimeout(async () => {
         try {
+            // 3. Execute the target function or menu change while screen is pitch black
             if(typeof targetMenuOrFunction === 'function'){
-                targetMenuOrFunction();
+                const result = targetMenuOrFunction();
+                if (result instanceof Promise) {
+                    await result;
+                }
             } else {
                 setMenu(targetMenuOrFunction);
             }
         } catch(e) {
             console.error("Transition error:", e);
         } finally {
+            // 4. Determine how long to stay black before fading out
+            let stayBlackDuration = 100;
+            if (typeof gameState !== 'undefined' && gameState === 'PLAY') {
+                stayBlackDuration = 200; // brief wait before game fade in starts
+            }
+            
+            // 5. Wait, then start fading to clear
             setTimeout(() => {
-                fade.classList.remove('active');
-                setTimeout(() => { isTransitioning = false; }, 400);
-            }, 100);
+                if(fade) fade.classList.remove('active');
+                
+                // 6. Wait exactly 300ms for the screen to become completely clear, then allow new transitions
+                setTimeout(() => { 
+                    isTransitioning = false; 
+                }, 300);
+            }, stayBlackDuration);
         }
-    }, 400);
+    }, 300);
 }
 
 function setMenu(id){
@@ -144,3 +163,51 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// ============ CUSTOM UI COMPONENTS ============
+function showCustomConfirm(title, message, onConfirm, onCancel) {
+    const overlay = document.getElementById('custom-alert-overlay');
+    if(!overlay) return;
+    
+    document.getElementById('custom-alert-title').innerText = title;
+    document.getElementById('custom-alert-message').innerText = message;
+    
+    const btnCancel = document.getElementById('custom-alert-btn-cancel');
+    const btnOk = document.getElementById('custom-alert-btn-ok');
+    
+    // cleanup old listeners
+    const newBtnCancel = btnCancel.cloneNode(true);
+    const newBtnOk = btnOk.cloneNode(true);
+    btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
+    btnOk.parentNode.replaceChild(newBtnOk, btnOk);
+    
+    overlay.classList.remove('hidden');
+    
+    // trigger reflow
+    void overlay.offsetWidth;
+    
+    const box = document.getElementById('custom-alert-box');
+    box.style.transform = 'scale(1)';
+    box.style.opacity = '1';
+    
+    newBtnCancel.onclick = () => {
+        closeCustomConfirm();
+        if(onCancel) onCancel();
+    };
+    
+    newBtnOk.onclick = () => {
+        closeCustomConfirm();
+        if(onConfirm) onConfirm();
+    };
+}
+
+function closeCustomConfirm() {
+    const overlay = document.getElementById('custom-alert-overlay');
+    const box = document.getElementById('custom-alert-box');
+    if(!box || !overlay) return;
+    
+    box.style.transform = 'scale(0.8)';
+    box.style.opacity = '0';
+    setTimeout(() => {
+        overlay.classList.add('hidden');
+    }, 300);
+}

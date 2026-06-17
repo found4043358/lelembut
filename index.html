@@ -7,6 +7,8 @@
     <title>LELEMBUT — Side Scroll</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.png" type="image/png">
 </head>
 <body>
     <div id="game-container">
@@ -58,13 +60,20 @@
             </div>
         </div>
 
+        <!-- Welcome Menu -->
+        <div id="welcome-menu" class="overlay-menu horror-menu" style="cursor: pointer; justify-content: center; align-items: center;" onclick="requestFullscreenAndStart()">
+            <h1 class="game-title" style="cursor: pointer;">LELEMBUT</h1>
+            <p style="color: #aaa; font-size: 20px; margin-top: 20px; animation: pulse 1.5s infinite;">Klik dimana saja untuk lanjut</p>
+            <button style="margin-top: 30px;" onclick="event.stopPropagation(); requestFullscreenAndStart()">Continue</button>
+        </div>
+
         <!-- Main Menu -->
-        <div id="main-menu" class="overlay-menu">
+        <div id="main-menu" class="overlay-menu horror-menu hidden">
             <h1 class="game-title">LELEMBUT</h1>
             <button onclick="transitionTo('level-select')"><i class="fa-solid fa-play"></i> Play Game</button>
             <button onclick="transitionTo('editor-select')"><i class="fa-solid fa-hammer"></i> Map Editor</button>
             <button onclick="openSettings('main-menu')"><i class="fa-solid fa-gear"></i> Settings</button>
-            <button id="btn-main-fullscreen" class="hidden" onclick="toggleFullscreen()"><i class="fa-solid fa-expand"></i> FULLSCREEN</button>
+            <button onclick="confirmExit()"><i class="fa-solid fa-right-from-bracket"></i> Exit Game</button>
             <button id="dev-menu-btn" onclick="transitionTo('dev-menu')" class="hidden" style="background:#8b0000; margin-top:10px;"><i class="fa-solid fa-wrench"></i> Dev Menu</button>
         </div>
 
@@ -153,7 +162,7 @@
 
         <!-- Settings -->
         <div id="settings-menu" class="overlay-menu hidden" style="background:rgba(15,15,20,0.95);">
-            <div style="background:#1a1a24; border:1px solid #445; padding:20px; border-radius:5px; width:500px; max-width:90%; max-height:90vh; overflow-y:auto;">
+            <div style="background:#1a1a24; border:1px solid #445; padding:20px; border-radius:5px; width:500px; max-width:90%; max-height:90vh; display:flex; flex-direction:column;">
                 <h2 style="margin-bottom:15px; border-bottom:1px solid #445; padding-bottom:5px;">SETTINGS</h2>
                 
                 <div style="display:flex; gap:2px; margin-bottom:15px;">
@@ -163,7 +172,8 @@
                     <button class="set-tab-btn" onclick="switchSetTab('config')">Config</button>
                 </div>
                 
-                <div id="set-tab-controls" class="set-tab-content">
+                <div style="overflow-y:auto; padding-right:10px; flex-grow:1;">
+                    <div id="set-tab-controls" class="set-tab-content">
                     <div class="bind-row"><span>Left:</span> <button id="bind-l" onclick="rebind('l')">A</button></div>
                     <div class="bind-row"><span>Right:</span> <button id="bind-r" onclick="rebind('r')">D</button></div>
                     <div class="bind-row"><span>Jump:</span> <button id="bind-jump" onclick="rebind('jump')">Space</button></div>
@@ -172,15 +182,17 @@
                     <div class="bind-row"><span>Interact:</span> <button id="bind-interact" onclick="rebind('interact')">E</button></div>
                     <div class="bind-row"><span>Toggle Aim:</span> <button id="bind-toggleAim" onclick="rebind('toggleAim')">Q</button></div>
                     <div class="bind-row"><span>Toggle Light:</span> <button id="bind-toggleLight" onclick="rebind('toggleLight')">L</button></div>
-                    <div class="bind-row" style="justify-content:flex-start; gap:10px; margin-top:15px; border-top:1px solid #445; padding-top:10px; width:100%;">
-                        <input type="checkbox" id="set-force-mobile" onchange="toggleForceMobileControls(this.checked)"> <label for="set-force-mobile">Force On-Screen Buttons</label>
-                    </div>
-                    <div class="bind-row" style="justify-content:flex-start; gap:10px; margin-top:10px; width:100%;">
+                    <div class="bind-row" style="justify-content:flex-start; gap:10px; margin-top:10px; width:100%; border-top:1px solid #445; padding-top:10px;">
                         <label>Mobile Movement:</label>
                         <select id="set-movement-type" onchange="changeMovementType(this.value)" style="padding:5px; background:#222; color:#fff; border:1px solid #444; font-family:'Special Elite';">
+                            <option value="analog" selected>Analog Joystick</option>
                             <option value="dpad">D-Pad (Arrows)</option>
-                            <option value="analog">Analog Joystick</option>
                         </select>
+                    </div>
+                    <div class="bind-row" style="justify-content:flex-start; gap:10px; margin-top:10px; width:100%; flex-direction:column; align-items:flex-start;">
+                        <label>Safe Zone Padding (<span id="val-safezone">0</span>px)</label>
+                        <p style="font-size:11px; color:#aaa; margin:0;">Mencegah tombol tertutup pinggiran layar (notch/kamera).</p>
+                        <input type="range" id="set-safezone" min="0" max="100" value="0" oninput="changeSafeZone(this.value)" style="width:100%;">
                     </div>
                     <div class="bind-row" style="justify-content:center; margin-top:10px; width:100%;">
                         <button onclick="startMobileLayoutEditor()" style="width:100%; background:#2a2a8b;"><i class="fa-solid fa-arrows-up-down-left-right"></i> Customize Mobile UI Layout</button>
@@ -225,20 +237,43 @@
                 </div>
 
                 <div id="set-tab-music" class="set-tab-content hidden">
-                    <p style="color:#888; text-align:center; padding:20px;">Coming Soon...</p>
+                    <div style="border-top:1px solid #445; margin-top:10px; padding-top:10px; display:flex; flex-direction:column; gap:8px;">
+                        <div style="display:flex; justify-content:space-between;">
+                            <label>Music Volume:</label>
+                            <input type="range" id="set-music-vol" min="0" max="1" step="0.05" value="1" onchange="updateAudioSettings()">
+                        </div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <label>SFX Volume:</label>
+                            <input type="range" id="set-sfx-vol" min="0" max="1" step="0.05" value="1" onchange="updateAudioSettings()">
+                        </div>
+                    </div>
                 </div>
 
                 <div id="set-tab-config" class="set-tab-content hidden">
                     <div class="bind-row" style="justify-content:flex-start; gap:10px;">
                         <input type="checkbox" id="set-devmode" onchange="toggleDevMode(this.checked)"> <label for="set-devmode">Enable Dev Mode</label>
                     </div>
-                    <div class="bind-row" style="justify-content:flex-start; gap:10px;">
-                        <input type="checkbox" id="set-force-fs" onchange="toggleForceMenuFullscreen(this.checked)"> <label for="set-force-fs">Force Menu Fullscreen Button</label>
+                    <p style="color:#888; text-align:left; padding:5px 0 10px 0; font-size:12px;">Enables the Dev Menu on the main screen for advanced configuration.</p>
+
+                    <div class="bind-row" style="justify-content:flex-start; gap:10px; margin-top:10px; border-top:1px solid #445; padding-top:10px;">
+                        <input type="checkbox" id="set-force-mobile" onchange="toggleForceMobileControls(this.checked)"> <label for="set-force-mobile">Force On-Screen Buttons</label>
                     </div>
-                    <p style="color:#888; text-align:center; padding:10px; font-size:12px;">Enables the Dev Menu on the main screen for advanced configuration.</p>
                 </div>
 
-                <button onclick="transitionTo(settingsReturnMenu)" style="margin-top:20px; width:100%; background:#444;"><i class="fa-solid fa-check"></i> Close</button>
+                </div>
+                <button onclick="transitionTo(settingsReturnMenu)" style="margin-top:20px; width:100%; background:#444; flex-shrink:0;"><i class="fa-solid fa-check"></i> Close</button>
+            </div>
+        </div>
+
+        <!-- Custom Alert -->
+        <div id="custom-alert-overlay" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:99999; display:flex; justify-content:center; align-items:center; transition: opacity 0.3s ease;">
+            <div id="custom-alert-box" style="background:#1a0505; border:1px solid #500; border-radius:5px; padding:20px; width:400px; max-width:90%; text-align:center; box-shadow: 0 0 30px #f005; transform: scale(0.8); opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                <h3 id="custom-alert-title" style="color:#f33; margin-top:0; border-bottom:1px solid #500; padding-bottom:10px; font-family:'Special Elite';">Confirm</h3>
+                <p id="custom-alert-message" style="color:#ddd; margin: 20px 0; font-size:18px;">Are you sure?</p>
+                <div style="display:flex; gap: 15px; justify-content:center; margin-top:20px;">
+                    <button id="custom-alert-btn-cancel" style="background:#333; color:#aaa; border:1px solid #444; padding:8px 20px; font-family:'Special Elite'; min-width: 100px; margin: 0;">Cancel</button>
+                    <button id="custom-alert-btn-ok" style="background:#800; color:#fff; border:1px solid #f00; padding:8px 20px; box-shadow: 0 0 10px #f005; font-family:'Special Elite'; min-width: 100px; margin: 0;">OK</button>
+                </div>
             </div>
         </div>
 
@@ -481,6 +516,31 @@
                 });
             } else {
                 document.exitFullscreen();
+            }
+        }
+        
+        function requestFullscreenAndStart() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log("Fullscreen request failed, proceeding anyway", err);
+                });
+            }
+            transitionTo('main-menu');
+        }
+        
+        function confirmExit() {
+            if(typeof showCustomConfirm === 'function') {
+                showCustomConfirm("KELUAR GAME", "Apakah kamu yakin ingin keluar dari alam lelembut?", () => {
+                    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+                        window.flutter_inappwebview.callHandler('exitApp');
+                    } else if(typeof navigator.app !== 'undefined' && navigator.app.exitApp) {
+                        navigator.app.exitApp();
+                    } else if(typeof window.Android !== 'undefined' && window.Android.exitApp) {
+                        window.Android.exitApp();
+                    } else {
+                        transitionTo('welcome-menu');
+                    }
+                });
             }
         }
     </script>

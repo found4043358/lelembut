@@ -36,6 +36,11 @@ function startGameplay(resetAll=true){
     setMenu('game'); gameOver=false; victory=false;
     devMode = false; // Always start fresh — P to toggle if devMenuEnabled
     canvas.style.filter = _baseCanvasFilter; // Ensure no grayscale on start
+    
+    // Explicitly re-trigger a fade in animation on the canvas itself
+    canvas.classList.remove('game-start-anim');
+    void canvas.offsetWidth; // Force reflow to restart animation
+    canvas.classList.add('game-start-anim');
     currentMapIdx = respawnPoint.mapIdx;
     
     player.x = respawnPoint.x; player.y = respawnPoint.y;

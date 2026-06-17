@@ -12,9 +12,11 @@ function saveGraphicsSettings(){
         sat: document.getElementById('gfx-sat').value,
         con: document.getElementById('gfx-con').value,
         bri: document.getElementById('gfx-bri').value,
+        musicVol: document.getElementById('set-music-vol') ? document.getElementById('set-music-vol').value : 1.0,
+        sfxVol: document.getElementById('set-sfx-vol') ? document.getElementById('set-sfx-vol').value : 1.0,
         devMenuEnabled: document.getElementById('set-devmode').checked,
         forceMobileControls: document.getElementById('set-force-mobile') ? document.getElementById('set-force-mobile').checked : false,
-        forceMenuFullscreen: document.getElementById('set-force-fs').checked
+        safeZone: document.getElementById('set-safezone') ? document.getElementById('set-safezone').value : 0
     };
     
     fetch('api.php?action=settings_save', {
@@ -22,6 +24,16 @@ function saveGraphicsSettings(){
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ data: settings })
     }).catch(e => console.error("Error saving settings:", e));
+}
+
+function changeSafeZone(val) {
+    document.getElementById('val-safezone').innerText = val;
+    const mc = document.getElementById('mobile-controls');
+    if (mc) {
+        mc.style.paddingLeft = val + 'px';
+        mc.style.paddingRight = val + 'px';
+    }
+    saveGraphicsSettings();
 }
 
 function loadSettings(){
@@ -38,18 +50,21 @@ function loadSettings(){
                 document.getElementById('gfx-sat').value = s.sat || 1;
                 document.getElementById('gfx-con').value = s.con || 1;
                 document.getElementById('gfx-bri').value = s.bri || 1;
+                if(document.getElementById('set-music-vol')) document.getElementById('set-music-vol').value = s.musicVol !== undefined ? s.musicVol : 1.0;
+                if(document.getElementById('set-sfx-vol')) document.getElementById('set-sfx-vol').value = s.sfxVol !== undefined ? s.sfxVol : 1.0;
                 document.getElementById('set-devmode').checked = s.devMenuEnabled || false;
                 if(document.getElementById('set-force-mobile')) document.getElementById('set-force-mobile').checked = s.forceMobileControls || false;
-                document.getElementById('set-force-fs').checked = s.forceMenuFullscreen || false;
+                if(document.getElementById('set-safezone')) document.getElementById('set-safezone').value = s.safeZone || 0;
                 
                 // Apply immediately
                 toggleCRT(s.crt);
                 toggleFilmMode(s.film);
                 changeResolution(s.resolusi);
                 updateGraphicsFilter();
+                updateAudioSettings();
                 toggleDevMode(s.devMenuEnabled || false);
                 if(document.getElementById('set-force-mobile')) toggleForceMobileControls(s.forceMobileControls || false);
-                toggleForceMenuFullscreen(s.forceMenuFullscreen || false);
+                if(s.safeZone !== undefined) changeSafeZone(s.safeZone);
             }
             isSettingsLoading = false;
         }).catch(e => { console.error("Error loading settings:", e); isSettingsLoading = false; });
@@ -64,12 +79,26 @@ function resetGraphicsSettings(){
         document.getElementById('gfx-sat').value = 1;
         document.getElementById('gfx-con').value = 1;
         document.getElementById('gfx-bri').value = 1;
+        if(document.getElementById('set-music-vol')) document.getElementById('set-music-vol').value = 1.0;
+        if(document.getElementById('set-sfx-vol')) document.getElementById('set-sfx-vol').value = 1.0;
         
         toggleCRT(false);
         toggleFilmMode(false);
         changeResolution('1280');
         updateGraphicsFilter();
+        updateAudioSettings();
+        saveGraphicsSettings();
     }
+}
+
+function updateAudioSettings() {
+    if(typeof Audio !== 'undefined') {
+        const mv = document.getElementById('set-music-vol');
+        const sv = document.getElementById('set-sfx-vol');
+        if(mv) Audio.setMusicVolume(parseFloat(mv.value));
+        if(sv) Audio.setSfxVolume(parseFloat(sv.value));
+    }
+    saveGraphicsSettings();
 }
 
 function toggleDevMode(isOn){
@@ -118,7 +147,7 @@ let mcLayoutData = {};
 let isEditingLayout = false;
 
 function applyMobileLayout() {
-    const movType = localStorage.getItem('lelembut_movement') || 'dpad';
+    const movType = localStorage.getItem('lelembut_movement') || 'analog';
     const movSelect = document.getElementById('set-movement-type');
     if(movSelect) movSelect.value = movType;
     if(typeof changeMovementType === 'function') changeMovementType(movType);

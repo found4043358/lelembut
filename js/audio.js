@@ -3,25 +3,27 @@ const Audio = {
     ctx: null,
     bgm: null,
     sfx: {},
-    _g(v){const g=this.ctx.createGain();g.gain.value=v;g.connect(this.ctx.destination);return g},
+    musicVol: 1.0,
+    sfxVol: 1.0,
+    _g(v){const g=this.ctx.createGain();g.gain.value=v*this.sfxVol;g.connect(this.ctx.destination);return g},
     init(){
         if(!this.ctx){
             this.ctx=new (window.AudioContext||window.webkitAudioContext)();
             this.bgm = new window.Audio('sounds/backsound.mp3');
             this.bgm.loop = true;
-            this.bgm.volume = 0.5;
+            this.bgm.volume = 0.5 * this.musicVol;
             this.walkAudio = new window.Audio('sounds/walk.mp3');
             this.walkAudio.loop = true;
-            this.walkAudio.volume = 0.4;
+            this.walkAudio.volume = 0.4 * this.sfxVol;
             this.menuBgm = new window.Audio('sounds/backsound_mainMenu.mp3');
             this.menuBgm.loop = true;
-            this.menuBgm.volume = 0.5;
+            this.menuBgm.volume = 1.0 * this.musicVol;
             this.heartbeatAudio = new window.Audio('sounds/darah_sekarat.mp3');
             this.heartbeatAudio.loop = true;
-            this.heartbeatAudio.volume = 0.6;
+            this.heartbeatAudio.volume = 0.6 * this.sfxVol;
             this.rainAudio = new window.Audio('sounds/rain.mp3');
             this.rainAudio.loop = true;
-            this.rainAudio.volume = 0.4;
+            this.rainAudio.volume = 0.4 * this.sfxVol;
             this.loadSfx('gun_pistol_and_machineGun.mp3', 'shoot_mg');
             this.loadSfx('sniper.mp3', 'shoot_sniper');
             this.loadSfx('reload_gun.mp3', 'reload');
@@ -41,6 +43,17 @@ const Audio = {
             this.loadSfx('stalker_mati.mp3', 'stalker_die');
             this.loadSfx('onOffSenter.mp3', 'flashlight');
         }
+    },
+    setMusicVolume(v){
+        this.musicVol = v;
+        if(this.bgm) this.bgm.volume = 0.5 * v;
+        if(this.menuBgm) this.menuBgm.volume = 1.0 * v;
+    },
+    setSfxVolume(v){
+        this.sfxVol = v;
+        if(this.walkAudio) this.walkAudio.volume = 0.4 * v;
+        if(this.heartbeatAudio) this.heartbeatAudio.volume = 0.6 * v;
+        if(this.rainAudio) this.rainAudio.volume = 0.4 * v;
     },
     playBGM(){
         if(this.menuBgm && !this.menuBgm.paused) this.menuBgm.pause();
@@ -88,7 +101,7 @@ const Audio = {
     },
     ui(type){
         if(type === 'inventory') this.playSfx('inventory', 0.8);
-        else if(type === 'click') this.playSfx('click', 0.5);
+        else if(type === 'click') this.playSfx('click', 1.25);
     },
     walk(isWalking){
         if(!this.walkAudio) return;
