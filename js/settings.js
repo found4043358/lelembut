@@ -27,13 +27,14 @@ function saveGraphicsSettings(){
 }
 
 function changeSafeZone(val) {
-    document.getElementById('val-safezone').innerText = val;
+    const valEl = document.getElementById('val-safezone');
+    if (valEl) valEl.innerText = val;
+    
     const mc = document.getElementById('mobile-controls');
     if (mc) {
         mc.style.paddingLeft = val + 'px';
         mc.style.paddingRight = val + 'px';
     }
-    saveGraphicsSettings();
 }
 
 function loadSettings(){
