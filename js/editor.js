@@ -244,7 +244,7 @@ function getGraphicsDPR() {
         if (window.graphicsQuality === 'medium') return Math.min(baseDpr, 1.0);
         if (window.graphicsQuality === 'low') return Math.min(baseDpr, 0.75);
         if (window.graphicsQuality === 'lowest') return Math.min(baseDpr, 0.5);
-        if (window.graphicsQuality === 'ultralow') return Math.min(baseDpr, 0.25);
+        if (window.graphicsQuality === 'ultralow') return Math.min(baseDpr, 0.15);
     }
     return baseDpr;
 }

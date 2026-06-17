@@ -423,6 +423,9 @@ function changeGraphicsQuality(type) {
     localStorage.setItem('lelembut_graphics_quality', type);
     window.graphicsQuality = type;
     console.log("Graphics Quality set to: " + type);
+    
+    if (typeof updateGraphicsFilter === 'function') updateGraphicsFilter();
+    
     // Apply / remove world-wide chromatic aberration CSS filter for Ultra
     const caFilter = 'url(#ca-ultra)';
     if (type === 'ultra') {

@@ -1101,7 +1101,7 @@ function updateGraphicsFilter(){
     const bri = document.getElementById('gfx-bri').value || 1;
     
     let filterStr = `saturate(${sat}) contrast(${con}) brightness(${bri})`;
-    if(isHDR){
+    if(isHDR && window.graphicsQuality !== 'ultralow'){
         filterStr += ` drop-shadow(0 0 10px rgba(100,200,255,0.2))`;
     }
     _baseCanvasFilter = filterStr;
@@ -1219,3 +1219,28 @@ function explodeAt(x, y, radius, damage) {
         });
     }
 }
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        if (gameState === 'PLAY') {
+            if (typeof transitionTo === 'function') transitionTo('pause-menu');
+        }
+        if (typeof Audio !== 'undefined') {
+            if (Audio.ctx && Audio.ctx.state === 'running') Audio.ctx.suspend();
+            if (Audio.bgm) Audio.bgm.pause();
+            if (Audio.menuBgm) Audio.menuBgm.pause();
+            if (Audio.walkAudio) Audio.walkAudio.pause();
+            if (Audio.heartbeatAudio) Audio.heartbeatAudio.pause();
+            if (Audio.rainAudio) Audio.rainAudio.pause();
+        }
+    } else {
+        if (typeof Audio !== 'undefined') {
+            if (Audio.ctx && Audio.ctx.state === 'suspended') Audio.ctx.resume();
+            if (gameState === 'MENU') {
+                if (Audio.menuBgm) Audio.menuBgm.play().catch(()=>{});
+            } else if (gameState === 'PLAY' || gameState === 'PAUSE' || gameState === 'INVENTORY' || gameState === 'EDITOR') {
+                if (Audio.bgm) Audio.bgm.play().catch(()=>{});
+            }
+        }
+    }
+});

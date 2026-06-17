@@ -42,6 +42,29 @@ function lightUpdate(dt, facingRight, aimDir = 0, px = 0, py = 0) {
 }
 function lightDraw(ctx, px, py) {
     if (!lightCtx) return;
+    if (window.graphicsQuality === 'ultralow') {
+        // Flat lighting: Just darkness and a simple circle cutout, no raycasts
+        const sx = px - cam.x, sy = py - cam.y;
+        ctx.save();
+        ctx.fillStyle = currentMapIdx === -1 ? 'rgba(8,12,20,.85)' : 'rgba(2,2,3,.98)';
+        ctx.fillRect(0, 0, CW, CH);
+        
+        ctx.globalCompositeOperation = 'destination-out';
+        let radius = 500 * (player.flashlightAnim !== undefined ? player.flashlightAnim : 1.0);
+        const bg = ctx.createRadialGradient(sx, sy, 0, sx, sy, radius);
+        bg.addColorStop(0, 'rgba(0,0,0,1)');
+        bg.addColorStop(0.5, 'rgba(0,0,0,0.8)');
+        bg.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = bg;
+        ctx.beginPath();
+        ctx.arc(sx, sy, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        return;
+    }
+
+    const map = getActiveMap();
+    if (!map) return;
     const lc = lightCtx;
 
     let batteryFactor = player.battery / player.maxBattery;

@@ -149,34 +149,36 @@ function drawTiles(ctx) {
     const er = Math.min(d.rows - 1, centerY + viewRadiusY);
 
     // Pass 1: Background Tiles
-    ctx.save(); ctx.translate(-cam.x, -cam.y);
-    for (let r = sr; r <= er; r++) {
-        for (let c = sc; c <= ec; c++) {
-            const rawT = d.tiles[r][c];
-            if (rawT === TILE_EMPTY) continue;
+    if (window.graphicsQuality !== 'ultralow') {
+        ctx.save(); ctx.translate(-cam.x, -cam.y);
+        for (let r = sr; r <= er; r++) {
+            for (let c = sc; c <= ec; c++) {
+                const rawT = d.tiles[r][c];
+                if (rawT === TILE_EMPTY) continue;
 
-            const px = c * TS, py = r * TS; let drawH = (r === d.rows - 1) ? CH * 3 : TS;
-            const bg = typeof getBg === 'function' ? getBg(rawT) : 0;
+                const px = c * TS, py = r * TS; let drawH = (r === d.rows - 1) ? CH * 3 : TS;
+                const bg = typeof getBg === 'function' ? getBg(rawT) : 0;
 
-            if (bg !== TILE_EMPTY) {
-                // Solid Backgrounds (no opacity)
-                if (bg === TILE_BG_DIRT) { ctx.fillStyle = '#221814'; ctx.fillRect(px, py, TS, drawH); }
-                else if (bg === TILE_BG_STONE) { ctx.fillStyle = '#222'; ctx.fillRect(px, py, TS, drawH); }
-                else if (bg === TILE_BG_METAL) { ctx.fillStyle = '#334'; ctx.fillRect(px, py, TS, drawH); }
-                else if (bg === TILE_BG_ICE) { ctx.fillStyle = '#113355'; ctx.fillRect(px, py, TS, drawH); }
-                else if (bg === TILE_BG_GLASS) { ctx.fillStyle = '#223333'; ctx.fillRect(px, py, TS, drawH); }
-                else if (bg === TILE_BG_WOOD) {
-                    ctx.fillStyle = '#3a2510'; ctx.fillRect(px, py, TS, drawH);
-                    // Wood grain lines
-                    if (mode !== 'flat') {
-                        ctx.strokeStyle = '#2c1c0a'; ctx.lineWidth = 1;
-                        for (let li = 0; li < drawH; li += 8) { ctx.beginPath(); ctx.moveTo(px, py + li); ctx.lineTo(px + TS, py + li); ctx.stroke(); }
+                if (bg !== TILE_EMPTY) {
+                    // Solid Backgrounds (no opacity)
+                    if (bg === TILE_BG_DIRT) { ctx.fillStyle = '#221814'; ctx.fillRect(px, py, TS, drawH); }
+                    else if (bg === TILE_BG_STONE) { ctx.fillStyle = '#222'; ctx.fillRect(px, py, TS, drawH); }
+                    else if (bg === TILE_BG_METAL) { ctx.fillStyle = '#334'; ctx.fillRect(px, py, TS, drawH); }
+                    else if (bg === TILE_BG_ICE) { ctx.fillStyle = '#113355'; ctx.fillRect(px, py, TS, drawH); }
+                    else if (bg === TILE_BG_GLASS) { ctx.fillStyle = '#223333'; ctx.fillRect(px, py, TS, drawH); }
+                    else if (bg === TILE_BG_WOOD) {
+                        ctx.fillStyle = '#3a2510'; ctx.fillRect(px, py, TS, drawH);
+                        // Wood grain lines
+                        if (mode !== 'flat') {
+                            ctx.strokeStyle = '#2c1c0a'; ctx.lineWidth = 1;
+                            for (let li = 0; li < drawH; li += 8) { ctx.beginPath(); ctx.moveTo(px, py + li); ctx.lineTo(px + TS, py + li); ctx.stroke(); }
+                        }
                     }
                 }
             }
         }
+        ctx.restore();
     }
-    ctx.restore();
 
     // Pass 2: Decorations (now in front of backgrounds)
     drawDecorations(ctx);

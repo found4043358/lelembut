@@ -103,8 +103,8 @@ const Audio = {
         else if(type === 'kuyang') this.playSfx('kuyang_ambient', 1.0);
     },
     ui(type){
-        if(type === 'inventory') this.playSfx('inventory', 1.6);
-        else if(type === 'click') this.playSfx('click', 1.25);
+        if(type==='click') this.playSfx('click', 1.0);
+        else if(type==='inventory') this.playSfx('inventory', 1.5);
     },
     walk(isWalking){
         if(!this.walkAudio) return;
