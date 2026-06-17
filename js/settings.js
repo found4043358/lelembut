@@ -27,6 +27,7 @@ function saveGraphicsSettings(){
 }
 
 function changeSafeZone(val) {
+    localStorage.setItem('lelembut_safe_zone', val);
     const valEl = document.getElementById('val-safezone');
     if (valEl) valEl.innerText = val;
     
@@ -55,19 +56,6 @@ function loadSettings(){
                 if(document.getElementById('set-sfx-vol')) document.getElementById('set-sfx-vol').value = s.sfxVol !== undefined ? s.sfxVol : 1.0;
                 document.getElementById('set-devmode').checked = s.devMenuEnabled || false;
                 if(document.getElementById('set-force-mobile')) document.getElementById('set-force-mobile').checked = s.forceMobileControls || false;
-                if(document.getElementById('set-safezone')) document.getElementById('set-safezone').value = s.safeZone || 0;
-                
-                const savedGQ = localStorage.getItem('lelembut_graphics_quality') || 'high';
-                window.graphicsQuality = savedGQ;
-                if(document.getElementById('ed-graphics-quality')) document.getElementById('ed-graphics-quality').value = savedGQ;
-                // Restore Ultra chromatic aberration filter if needed
-                if (savedGQ === 'ultra') {
-                    const caFilter = 'url(#ca-ultra)';
-                    if (!_baseCanvasFilter.includes(caFilter)) {
-                        _baseCanvasFilter = caFilter + ' ' + _baseCanvasFilter;
-                    }
-                    gameCanvas.style.filter = _baseCanvasFilter;
-                }
                 
                 // Apply immediately
                 toggleCRT(s.crt);
@@ -303,10 +291,33 @@ function resetMobileLayout() {
     location.reload(); // Quickest way to reset everything
 }
 
+// Load local settings synchronously
+function loadLocalSettingsSync() {
+    // Graphics Quality
+    const savedGQ = localStorage.getItem('lelembut_graphics_quality') || 'high';
+    window.graphicsQuality = savedGQ;
+    if(document.getElementById('ed-graphics-quality')) document.getElementById('ed-graphics-quality').value = savedGQ;
+    
+    // Restore Ultra chromatic aberration filter if needed
+    if (savedGQ === 'ultra') {
+        const caFilter = 'url(#ca-ultra)';
+        if (typeof _baseCanvasFilter !== 'undefined' && !_baseCanvasFilter.includes(caFilter)) {
+            _baseCanvasFilter = caFilter + ' ' + _baseCanvasFilter;
+            if(typeof gameCanvas !== 'undefined' && gameCanvas) gameCanvas.style.filter = _baseCanvasFilter;
+        }
+    }
+    
+    // Safe Zone
+    const savedSafeZone = localStorage.getItem('lelembut_safe_zone') || 0;
+    if(document.getElementById('ed-safezone')) document.getElementById('ed-safezone').value = savedSafeZone;
+    changeSafeZone(savedSafeZone);
+}
+
 // Load settings on boot
 window.addEventListener('load', () => {
-    loadSettings();
+    loadLocalSettingsSync();
     applyMobileLayout();
+    loadSettings();
 });
 
 function changeGraphicsQuality(type) {
