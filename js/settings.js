@@ -192,10 +192,11 @@ function startMobileLayoutEditor() {
     
     document.querySelectorAll('.mc-btn').forEach(btn => {
         btn.classList.add('edit-mode');
-        // Convert to percentage values so it works across different screen sizes
-        const rect = btn.getBoundingClientRect();
-        btn.style.left = (rect.left / window.innerWidth * 100) + '%';
-        btn.style.top = (rect.top / window.innerHeight * 100) + '%';
+        // Convert to percentage values relative to container so it works across different screen sizes
+        const pLeft = (btn.offsetLeft / mc.clientWidth * 100) + '%';
+        const pTop = (btn.offsetTop / mc.clientHeight * 100) + '%';
+        btn.style.left = pLeft;
+        btn.style.top = pTop;
         btn.style.right = 'auto';
         btn.style.bottom = 'auto';
         
@@ -280,6 +281,25 @@ function saveMobileLayout() {
     document.getElementById('settings-menu').classList.remove('hidden');
     
     // Hide controls if we are just in the menu and force is not checked
+    const isForce = document.getElementById('set-force-mobile') && document.getElementById('set-force-mobile').checked;
+    if(gameState !== 'PLAY' && !isForce) {
+        document.getElementById('mobile-controls').classList.add('hidden');
+    }
+}
+
+function cancelMobileLayout() {
+    isEditingLayout = false;
+    document.querySelectorAll('.mc-btn').forEach(btn => {
+        btn.classList.remove('edit-mode');
+        btn.onpointerdown = null; // remove drag listener
+    });
+    
+    document.getElementById('mobile-layout-editor').classList.add('hidden');
+    document.getElementById('settings-menu').classList.remove('hidden');
+    
+    // Undo unsaved layout changes
+    applyMobileLayout();
+    
     const isForce = document.getElementById('set-force-mobile') && document.getElementById('set-force-mobile').checked;
     if(gameState !== 'PLAY' && !isForce) {
         document.getElementById('mobile-controls').classList.add('hidden');
