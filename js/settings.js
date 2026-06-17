@@ -288,7 +288,25 @@ function saveMobileLayout() {
 
 function resetMobileLayout() {
     localStorage.removeItem('lelembut_mc_layout');
-    location.reload(); // Quickest way to reset everything
+    localStorage.removeItem('lelembut_safe_zone');
+    
+    // Reset Safe Zone
+    if(document.getElementById('ed-safezone')) document.getElementById('ed-safezone').value = 0;
+    changeSafeZone(0);
+    
+    // Reset Sliders
+    if(document.getElementById('mc-scale-slider')) document.getElementById('mc-scale-slider').value = 1.0;
+    if(document.getElementById('mc-opacity-slider')) document.getElementById('mc-opacity-slider').value = 0.6;
+    
+    // Reset Buttons inline styles (fall back to style.css)
+    document.querySelectorAll('.mc-btn').forEach(btn => {
+        btn.style.transform = 'none';
+        btn.style.opacity = '1';
+        btn.style.left = '';
+        btn.style.top = '';
+        btn.style.right = '';
+        btn.style.bottom = '';
+    });
 }
 
 // Load local settings synchronously

@@ -76,10 +76,10 @@
         </div>
 
         <!-- Welcome Menu -->
-        <div id="welcome-menu" class="overlay-menu horror-menu" style="cursor: pointer; justify-content: center; align-items: center;" onclick="transitionTo('main-menu')">
+        <div id="welcome-menu" class="overlay-menu horror-menu" style="cursor: pointer; justify-content: center; align-items: center;" onclick="restoreAudioAndStart()">
             <h1 class="game-title" style="cursor: pointer;">LELEMBUT</h1>
             <p style="color: #aaa; font-size: 20px; margin-top: 20px; animation: pulse 1.5s infinite;">Klik dimana saja untuk lanjut</p>
-            <button style="margin-top: 30px;" onclick="event.stopPropagation(); transitionTo('main-menu')">Continue</button>
+            <button style="margin-top: 30px;" onclick="event.stopPropagation(); restoreAudioAndStart()">Continue</button>
         </div>
 
         <!-- Main Menu -->
@@ -189,6 +189,9 @@
                 
                 <div style="overflow-y:auto; padding-right:10px; flex-grow:1;">
                     <div id="set-tab-controls" class="set-tab-content">
+                    <div style="margin-bottom:15px; text-align:center;">
+                        <button onclick="startMobileLayoutEditor()" style="background:#006400; color:#fff; border:1px solid #0f0; padding:5px 15px; font-family:'Special Elite'; width: 100%;">Customize Mobile Layout</button>
+                    </div>
                     <div class="bind-row"><span>Left:</span> <button id="bind-l" onclick="rebind('l')">A</button></div>
                     <div class="bind-row"><span>Right:</span> <button id="bind-r" onclick="rebind('r')">D</button></div>
                     <div class="bind-row"><span>Jump:</span> <button id="bind-jump" onclick="rebind('jump')">Space</button></div>
@@ -197,10 +200,6 @@
                     <div class="bind-row"><span>Interact:</span> <button id="bind-interact" onclick="rebind('interact')">E</button></div>
                     <div class="bind-row"><span>Toggle Aim:</span> <button id="bind-toggleAim" onclick="rebind('toggleAim')">Q</button></div>
                     <div class="bind-row"><span>Toggle Light:</span> <button id="bind-toggleLight" onclick="rebind('toggleLight')">L</button></div>
-                    <div style="margin-top:10px; text-align:center; display:flex; gap:10px; justify-content:center; border-top:1px solid #445; padding-top:15px;">
-                        <button onclick="startMobileLayoutEditor()" style="background:#006400; color:#fff; border:1px solid #0f0; padding:5px 15px; font-family:'Special Elite';">Customize Mobile Layout</button>
-                        <button onclick="resetMobileLayout()" style="background:#800; color:#fff; border:1px solid #f00; padding:5px 15px; font-family:'Special Elite';">Reset Mobile Layout</button>
-                    </div>
                 </div>
 
                 <div id="set-tab-graphics" class="set-tab-content hidden">
@@ -493,7 +492,7 @@
                     </div>
                 </div>
             </div>
-            <div style="position:absolute; bottom:30px; display:flex; gap:20px;">
+            <div style="position:absolute; top:20px; display:flex; gap:20px;">
                 <button onclick="resetMobileLayout()" style="background:#8b0000; pointer-events:auto;"><i class="fa-solid fa-rotate-left"></i> Reset Default</button>
                 <button onclick="saveMobileLayout()" style="background:#005500; border-color:#0f0; pointer-events:auto;"><i class="fa-solid fa-check"></i> Selesai & Simpan</button>
             </div>
@@ -535,6 +534,17 @@
                 document.documentElement.requestFullscreen().catch(err => {
                     console.log("Fullscreen request failed, proceeding anyway", err);
                 });
+            }
+            transitionTo('main-menu');
+        }
+        
+        function restoreAudioAndStart() {
+            if(typeof Audio !== 'undefined') {
+                const mVol = document.getElementById('set-music-vol') ? parseFloat(document.getElementById('set-music-vol').value) : 1.0;
+                const sVol = document.getElementById('set-sfx-vol') ? parseFloat(document.getElementById('set-sfx-vol').value) : 1.0;
+                Audio.setMusicVolume(mVol);
+                Audio.setSfxVolume(sVol);
+                if(Audio.menuBgm && Audio.menuBgm.paused) Audio.menuBgm.play().catch(()=>{});
             }
             transitionTo('main-menu');
         }
