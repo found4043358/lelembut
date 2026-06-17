@@ -42,26 +42,7 @@ function lightUpdate(dt, facingRight, aimDir = 0, px = 0, py = 0) {
 }
 function lightDraw(ctx, px, py) {
     if (!lightCtx) return;
-    if (window.graphicsQuality === 'ultralow') {
-        // Flat lighting: Just darkness and a simple circle cutout, no raycasts
-        const sx = px - cam.x, sy = py - cam.y;
-        ctx.save();
-        ctx.fillStyle = currentMapIdx === -1 ? 'rgba(8,12,20,.85)' : 'rgba(2,2,3,.98)';
-        ctx.fillRect(0, 0, CW, CH);
-        
-        ctx.globalCompositeOperation = 'destination-out';
-        let radius = 500 * (player.flashlightAnim !== undefined ? player.flashlightAnim : 1.0);
-        const bg = ctx.createRadialGradient(sx, sy, 0, sx, sy, radius);
-        bg.addColorStop(0, 'rgba(0,0,0,1)');
-        bg.addColorStop(0.5, 'rgba(0,0,0,0.8)');
-        bg.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = bg;
-        ctx.beginPath();
-        ctx.arc(sx, sy, radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-        return;
-    }
+    if (window.graphicsQuality === 'ultralow') return; // Potato Mode: skip lighting completely
 
     const map = getActiveMap();
     if (!map) return;
@@ -216,17 +197,20 @@ function lightDraw(ctx, px, py) {
     };
 
     // Draw Torches and Lamps Glow
-    map.decorations.forEach(d => {
-        if (d.mapIdx === currentMapIdx) {
-            if (d.type === 'dec_torch') drawPointLight(d.x + TS / 2, d.y + TS / 4, 250 * flicker, 0.9, 60);
-            if (d.type === 'dec_lamp') drawPointLight(d.x + TS / 2, d.y + TS / 4, 350, 0.9, 80);
-        }
-    });
+    if (map.decorations) {
+        map.decorations.forEach(d => {
+            if (d.mapIdx === currentMapIdx) {
+                if (d.type === 'dec_torch') drawPointLight(d.x + TS / 2, d.y + TS / 4, 250 * flicker, 0.9, 60);
+                if (d.type === 'dec_lamp') drawPointLight(d.x + TS / 2, d.y + TS / 4, 350, 0.9, 80);
+            }
+        });
+    }
 
     // Endgame Door Glow
-    map.pickups.forEach(pk => {
-        const mIdx = pk.mapIdx !== undefined ? pk.mapIdx : -1;
-        if (mIdx === currentMapIdx && pk.t === 'end') {
+    if (map.pickups) {
+        map.pickups.forEach(pk => {
+            const mIdx = pk.mapIdx !== undefined ? pk.mapIdx : -1;
+            if (mIdx === currentMapIdx && pk.t === 'end') {
             drawPointLight(pk.x + TS / 2, pk.y + TS / 2, 300 * flicker, 0.9, 80);
         }
     });
