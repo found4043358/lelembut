@@ -56,6 +56,18 @@ function loadSettings(){
                 if(document.getElementById('set-force-mobile')) document.getElementById('set-force-mobile').checked = s.forceMobileControls || false;
                 if(document.getElementById('set-safezone')) document.getElementById('set-safezone').value = s.safeZone || 0;
                 
+                const savedGQ = localStorage.getItem('lelembut_graphics_quality') || 'high';
+                window.graphicsQuality = savedGQ;
+                if(document.getElementById('ed-graphics-quality')) document.getElementById('ed-graphics-quality').value = savedGQ;
+                // Restore Ultra chromatic aberration filter if needed
+                if (savedGQ === 'ultra') {
+                    const caFilter = 'url(#ca-ultra)';
+                    if (!_baseCanvasFilter.includes(caFilter)) {
+                        _baseCanvasFilter = caFilter + ' ' + _baseCanvasFilter;
+                    }
+                    gameCanvas.style.filter = _baseCanvasFilter;
+                }
+                
                 // Apply immediately
                 toggleCRT(s.crt);
                 toggleFilmMode(s.film);
@@ -296,17 +308,22 @@ window.addEventListener('load', () => {
     applyMobileLayout();
 });
 
-function changeMovementType(type) {
-    localStorage.setItem('lelembut_movement', type);
-    const dpadBtns = ['btn-up', 'btn-down', 'btn-left', 'btn-right'].map(id => document.getElementById(id));
-    const joystick = document.getElementById('joystick-base');
-    
-    if (type === 'analog') {
-        dpadBtns.forEach(b => b && b.classList.add('hidden'));
-        if(joystick) joystick.classList.remove('hidden');
+function changeGraphicsQuality(type) {
+    localStorage.setItem('lelembut_graphics_quality', type);
+    window.graphicsQuality = type;
+    console.log("Graphics Quality set to: " + type);
+    // Apply / remove world-wide chromatic aberration CSS filter for Ultra
+    const caFilter = 'url(#ca-ultra)';
+    if (type === 'ultra') {
+        // Prepend CA filter to the base filter string
+        if (!_baseCanvasFilter.includes(caFilter)) {
+            _baseCanvasFilter = caFilter + ' ' + _baseCanvasFilter;
+        }
     } else {
-        dpadBtns.forEach(b => b && b.classList.remove('hidden'));
-        if(joystick) joystick.classList.add('hidden');
+        // Remove CA filter
+        _baseCanvasFilter = _baseCanvasFilter.replace(caFilter + ' ', '').replace(caFilter, '').trim();
+        if (!_baseCanvasFilter) _baseCanvasFilter = 'none';
     }
+    gameCanvas.style.filter = _baseCanvasFilter;
 }
 

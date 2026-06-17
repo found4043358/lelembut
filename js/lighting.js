@@ -5,7 +5,7 @@ let lightAngle = 0, lightTarget = 0, sway = 0, swayX = 0, swayY = 0, flicker = 1
 function lightInit() {
     if (!lightCvs) lightCvs = document.createElement('canvas');
     lightCvs.width = CW; lightCvs.height = CH;
-    lightCtx = lightCvs.getContext('2d', { willReadFrequently: true });
+    lightCtx = lightCvs.getContext('2d'); // No willReadFrequently - keeps canvas in GPU VRAM for faster compositing
 
     if (!ambLightCvs) ambLightCvs = document.createElement('canvas');
     ambLightCvs.width = CW / 2; ambLightCvs.height = CH / 2;
@@ -55,7 +55,7 @@ function lightDraw(ctx, px, py) {
     let radius = 500 * finalScale * flicker;
 
     const bx = px - cam.x, by = py - cam.y;
-    const sx = px - cam.x + swayX, sy = py - cam.y + swayY;
+    const sx = px - cam.x, sy = py - cam.y;
 
     lc.globalCompositeOperation = 'source-over';
     lc.fillStyle = currentMapIdx === -1 ? 'rgba(8,12,20,.85)' : 'rgba(2,2,3,.98)';
@@ -78,8 +78,11 @@ function lightDraw(ctx, px, py) {
     lc.save();
     lc.beginPath();
     lc.moveTo(sx, sy);
-    const numRays = 240;
-    const maxDepth = 15;
+    // High: 160 rays (blur(45px) smooths the inter-ray gaps, saves ~33% CPU raycast time)
+    // Ultra: 200 rays, step 3 (sharpest possible before blur softens)
+    // Medium/Low: 120 rays (blur(8px)/blur(3px) cover it, saves ~50% CPU raycast time)
+    const numRays = (window.graphicsQuality === 'ultra') ? 200 : (window.graphicsQuality === 'high') ? 160 : 120;
+    const maxDepth = (window.graphicsQuality === 'low') ? 15 : (window.graphicsQuality === 'medium') ? 15 : 25; 
     const rayPoints = [];
     for (let i = 0; i <= numRays; i++) {
         let a = lightAngle - cone / 2 + (cone * i / numRays);
@@ -88,7 +91,7 @@ function lightDraw(ctx, px, py) {
         let hitDepth = 0;
         let hit = false;
         while (dist < radius) {
-            dist += 3;
+            dist += (window.graphicsQuality === 'ultra') ? 3 : (window.graphicsQuality === 'high') ? 4 : 5; // blur covers stepping, fewer iterations
             let wx = px + dx * dist, wy = py + dy * dist;
             let t = mapTile(Math.floor(wx / TS), Math.floor(wy / TS));
             if (isSolidTile(t) && t !== 8) {
@@ -109,11 +112,23 @@ function lightDraw(ctx, px, py) {
     bg.addColorStop(.8, `rgba(0,0,0,${cAlpha * 0.5})`);
     bg.addColorStop(1, 'rgba(0,0,0,0)');
 
-    // TRUE Blur for buttery smooth edges (eliminates sawtooth)
-    lc.filter = 'blur(45px)';
-    lc.fillStyle = bg;
-    lc.fill();
-    lc.filter = 'none'; // reset
+    // Blur per quality level — cost scales as radius²:  3²=9  |  8²=64  |  45²=2025
+    if (window.graphicsQuality === 'ultra' || window.graphicsQuality === 'high') {
+        lc.filter = 'blur(45px)';
+        lc.fillStyle = bg;
+        lc.fill();
+        lc.filter = 'none';
+    } else if (window.graphicsQuality === 'medium') {
+        lc.filter = 'blur(16px)'; // Smoother gradient for medium (was 8px)
+        lc.fillStyle = bg;
+        lc.fill();
+        lc.filter = 'none';
+    } else {
+        lc.filter = 'blur(3px)'; // minimum effective softening, ~7x cheaper than medium
+        lc.fillStyle = bg;
+        lc.fill();
+        lc.filter = 'none';
+    }
     lc.restore();
 
     // --- SECONDARY LIGHTS ON OFF-SCREEN CANVAS (FAST AND SOFT) ---
@@ -196,71 +211,159 @@ function lightDraw(ctx, px, py) {
     // The browser's native bilinear scaling + a single blur pass makes it incredibly smooth and completely lag-free.
     lc.save();
     lc.globalCompositeOperation = 'destination-out';
-    lc.filter = 'blur(18px)';
+    if (window.graphicsQuality === 'ultra' || window.graphicsQuality === 'high') lc.filter = 'blur(18px)';
+    else if (window.graphicsQuality === 'medium') lc.filter = 'blur(8px)';
+    else lc.filter = 'blur(3px)'; // low: minimal softening on torch/lamp glow
     lc.drawImage(ambLightCvs, 0, 0, CW, CH);
+    lc.filter = 'none'; // always reset
     lc.restore();
 
     // 0. Perfect Edge Highlight for illuminated blocks (DRAWN BEFORE DARKNESS)
     // The darkness mask will smoothly fade these lines out at the edges of the flashlight cone!
-    ctx.save();
-    ctx.globalCompositeOperation = 'overlay';
-    
-    // Smooth distance fade gradient
-    const edgeGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, radius * 0.9);
-    edgeGrad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
-    edgeGrad.addColorStop(0.5, 'rgba(255, 240, 200, 0.75)');
-    edgeGrad.addColorStop(0.85, 'rgba(255, 220, 160, 0.3)');
-    edgeGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    ctx.strokeStyle = edgeGrad;
-    
-    ctx.lineWidth = 3;
-    ctx.filter = 'blur(1.5px)'; 
-    
-    ctx.beginPath();
-    const edgeMap = getActiveMap();
-    if(edgeMap) {
-        const scl = Math.max(0, Math.floor(cam.x / TS));
-        const ecl = Math.min(edgeMap.cols - 1, Math.floor((cam.x + CW) / TS) + 1);
-        const srl = Math.max(0, Math.floor(cam.y / TS));
-        const erl = Math.min(edgeMap.rows - 1, Math.floor((cam.y + CH) / TS) + 1);
-        for(let r=srl; r<=erl; r++){
-            for(let c=scl; c<=ecl; c++){
-                const t = edgeMap.tiles[r][c];
-                if(isSolidTile(t) && t !== 8) { 
-                    const px = c*TS - cam.x;
-                    const py = r*TS - cam.y;
-                    // top
-                    if(r===0 || !isSolidTile(edgeMap.tiles[r-1][c])) { ctx.moveTo(px, py); ctx.lineTo(px+TS, py); }
-                    // bottom
-                    if(r<edgeMap.rows-1 && !isSolidTile(edgeMap.tiles[r+1][c])) { ctx.moveTo(px, py+TS); ctx.lineTo(px+TS, py+TS); }
-                    // left
-                    if(c===0 || !isSolidTile(edgeMap.tiles[r][c-1])) { ctx.moveTo(px, py); ctx.lineTo(px, py+TS); }
-                    // right
-                    if(c===edgeMap.cols-1 || !isSolidTile(edgeMap.tiles[r][c+1])) { ctx.moveTo(px+TS, py); ctx.lineTo(px+TS, py+TS); }
+    if (window.graphicsQuality !== 'low') {
+        ctx.save();
+        ctx.globalCompositeOperation = 'overlay';
+        
+        // Smooth distance fade gradient
+        const edgeGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, radius * 0.9);
+        edgeGrad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+        edgeGrad.addColorStop(0.5, 'rgba(255, 240, 200, 0.75)');
+        edgeGrad.addColorStop(0.85, 'rgba(255, 220, 160, 0.3)');
+        edgeGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.strokeStyle = edgeGrad;
+        
+        ctx.lineWidth = 3;
+        if (window.graphicsQuality === 'ultra' || window.graphicsQuality === 'high') ctx.filter = 'blur(1.5px)'; 
+        
+        ctx.beginPath();
+        const edgeMap = getActiveMap();
+        if(edgeMap) {
+            const scl = Math.max(0, Math.floor(cam.x / TS));
+            const ecl = Math.min(edgeMap.cols - 1, Math.floor((cam.x + CW) / TS) + 1);
+            const srl = Math.max(0, Math.floor(cam.y / TS));
+            const erl = Math.min(edgeMap.rows - 1, Math.floor((cam.y + CH) / TS) + 1);
+            for(let r=srl; r<=erl; r++){
+                for(let c=scl; c<=ecl; c++){
+                    const t = edgeMap.tiles[r][c];
+                    if(isSolidTile(t) && t !== 8) { 
+                        const px = c*TS - cam.x;
+                        const py = r*TS - cam.y;
+                        // top
+                        if(r===0 || !isSolidTile(edgeMap.tiles[r-1][c])) { ctx.moveTo(px, py); ctx.lineTo(px+TS, py); }
+                        // bottom
+                        if(r<edgeMap.rows-1 && !isSolidTile(edgeMap.tiles[r+1][c])) { ctx.moveTo(px, py+TS); ctx.lineTo(px+TS, py+TS); }
+                        // left
+                        if(c===0 || !isSolidTile(edgeMap.tiles[r][c-1])) { ctx.moveTo(px, py); ctx.lineTo(px, py+TS); }
+                        // right
+                        if(c===edgeMap.cols-1 || !isSolidTile(edgeMap.tiles[r][c+1])) { ctx.moveTo(px+TS, py); ctx.lineTo(px+TS, py+TS); }
+                    }
                 }
             }
         }
+        ctx.stroke();
+        ctx.restore();
     }
-    ctx.stroke();
-    ctx.restore();
 
     // 1. Draw the darkness overlay (THIS WILL SOFTLY MASK THE OUTLINES OUTSIDE THE FLASHLIGHT!)
     ctx.drawImage(lightCvs, 0, 0);
 
-    // 2. Add bright bloom overlay to actively ILLUMINATE the flashlight cone!
+    // 2. Post-lighting bloom and effects
+    if (window.graphicsQuality === 'low') return; // Low: skip all bloom
+
+    const isUltra = window.graphicsQuality === 'ultra';
+
+    // Gun tip position in screen space (where the flashlight barrel actually ends)
+    // Offset ~22px along lightAngle from player center
+    const GUN_REACH = 22;
+    const gsx = sx + Math.cos(lightAngle) * GUN_REACH;
+    const gsy = sy + Math.sin(lightAngle) * GUN_REACH * 0.75;
+
+    // ── HIGH: Single elegant warm bloom ──
+    if (!isUltra) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'overlay';
+        ctx.filter = 'blur(18px)';
+        const bloom = ctx.createRadialGradient(gsx, gsy, 0, gsx, gsy, radius * 0.85);
+        bloom.addColorStop(0,   'rgba(255, 255, 235, 0.75)');
+        bloom.addColorStop(0.45,'rgba(255, 248, 215, 0.35)');
+        bloom.addColorStop(1,   'rgba(255, 240, 190, 0)');
+        ctx.fillStyle = bloom;
+        ctx.beginPath();
+        ctx.moveTo(gsx, gsy);
+        ctx.arc(gsx, gsy, radius * 0.85, lightAngle - cone / 2, lightAngle + cone / 2);
+        ctx.lineTo(gsx, gsy);
+        ctx.fill();
+        ctx.filter = 'none';
+        ctx.restore();
+        return;
+    }
+
+    // ── ULTRA: Multi-layer bloom from gun tip ──
+
+    // LAYER 1: Wide world-ambient halo — very short, tight, and circular so it doesn't rotate awkwardly
     ctx.save();
-    ctx.globalCompositeOperation = 'overlay'; // This brightens the underlying textures beautifully
-    const bloom = ctx.createRadialGradient(sx, sy, 0, sx, sy, radius * 0.9);
-    bloom.addColorStop(0, 'rgba(255, 250, 230, 0.7)'); // 70% bright at core
-    bloom.addColorStop(0.4, 'rgba(255, 250, 230, 0.35)');
-    bloom.addColorStop(1, 'rgba(255, 250, 230, 0)');
-    ctx.fillStyle = bloom;
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.filter = 'blur(28px)';
+    const halo = ctx.createRadialGradient(gsx, gsy, 0, gsx, gsy, radius * 0.35);
+    halo.addColorStop(0,   'rgba(255, 252, 210, 0.40)');
+    halo.addColorStop(0.5, 'rgba(255, 245, 190, 0.15)');
+    halo.addColorStop(1,   'rgba(255, 235, 160, 0)');
+    ctx.fillStyle = halo;
     ctx.beginPath();
-    ctx.moveTo(sx, sy);
-    ctx.arc(sx, sy, radius * 0.9, lightAngle - cone / 1.8, lightAngle + cone / 1.8);
-    ctx.lineTo(sx, sy);
-    ctx.filter = 'blur(20px)'; // Soften the edges of the bloom
+    ctx.arc(gsx, gsy, radius * 0.35, 0, Math.PI * 2);
     ctx.fill();
+    ctx.filter = 'none';
+    ctx.restore();
+
+    // LAYER 2: Tight hot-white core at gun tip
+    ctx.save();
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.filter = 'blur(10px)';
+    const core = ctx.createRadialGradient(gsx, gsy, 0, gsx, gsy, radius * 0.38);
+    core.addColorStop(0,   'rgba(255, 255, 245, 0.90)');
+    core.addColorStop(0.5, 'rgba(255, 252, 225, 0.40)');
+    core.addColorStop(1,   'rgba(255, 248, 200, 0)');
+    ctx.fillStyle = core;
+    ctx.beginPath();
+    ctx.moveTo(gsx, gsy);
+    ctx.arc(gsx, gsy, radius * 0.38, lightAngle - cone / 2.2, lightAngle + cone / 2.2);
+    ctx.lineTo(gsx, gsy);
+    ctx.fill();
+    ctx.filter = 'none';
+    ctx.restore();
+
+    // LAYER 3: On-canvas RGB channel split from gun tip (in-cone light dispersion)
+    const aberr = radius * 0.010;
+    const rOff = { x: Math.cos(lightAngle + Math.PI/2) * aberr, y: Math.sin(lightAngle + Math.PI/2) * aberr };
+    const bOff = { x: Math.cos(lightAngle - Math.PI/2) * aberr, y: Math.sin(lightAngle - Math.PI/2) * aberr };
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.filter = 'blur(7px)';
+
+    const rGrad = ctx.createRadialGradient(gsx + rOff.x, gsy + rOff.y, 0, gsx + rOff.x, gsy + rOff.y, radius * 0.7);
+    rGrad.addColorStop(0,   'rgba(255, 55, 35, 0.14)');
+    rGrad.addColorStop(0.65,'rgba(255, 30, 10, 0.05)');
+    rGrad.addColorStop(1,   'rgba(255, 0,  0,  0)');
+    ctx.fillStyle = rGrad;
+    ctx.beginPath();
+    ctx.moveTo(gsx + rOff.x, gsy + rOff.y);
+    ctx.arc(gsx + rOff.x, gsy + rOff.y, radius * 0.7, lightAngle - cone / 2.2, lightAngle + cone / 2.2);
+    ctx.lineTo(gsx + rOff.x, gsy + rOff.y);
+    ctx.fill();
+
+    const bGrad = ctx.createRadialGradient(gsx + bOff.x, gsy + bOff.y, 0, gsx + bOff.x, gsy + bOff.y, radius * 0.7);
+    bGrad.addColorStop(0,   'rgba(45, 90, 255, 0.14)');
+    bGrad.addColorStop(0.65,'rgba(25, 60, 255, 0.05)');
+    bGrad.addColorStop(1,   'rgba(0,  0,  255, 0)');
+    ctx.fillStyle = bGrad;
+    ctx.beginPath();
+    ctx.moveTo(gsx + bOff.x, gsy + bOff.y);
+    ctx.arc(gsx + bOff.x, gsy + bOff.y, radius * 0.7, lightAngle - cone / 2.2, lightAngle + cone / 2.2);
+    ctx.lineTo(gsx + bOff.x, gsy + bOff.y);
+    ctx.fill();
+    ctx.filter = 'none';
     ctx.restore();
 }
+
 

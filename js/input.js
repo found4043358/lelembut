@@ -196,10 +196,7 @@ function initInput(){
         }, {passive: false});
     };
 
-    bindTouch('btn-left', () => keys.l=1, () => keys.l=0);
-    bindTouch('btn-right', () => keys.r=1, () => keys.r=0);
-    bindTouch('btn-up', () => keys.u=1, () => keys.u=0);
-    bindTouch('btn-down', () => keys.d=1, () => keys.d=0);
+    // D-Pad touch handlers removed, only using Analog Joystick now
     bindTouch('btn-jump', () => { if(!keys.jump) keys.jpressed=1; keys.jump=1; }, () => keys.jump=0);
     const handleShootDown = () => {
         if (player.throwingItem && typeof spawnThrowable === 'function') {

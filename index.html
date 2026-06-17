@@ -16,6 +16,21 @@
         <canvas id="gameCanvas" width="960" height="540"></canvas>
         <div id="crt-overlay"></div>
         <div id="screen-fade"></div>
+        <!-- SVG Filters for Ultra graphics post-processing -->
+        <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+            <defs>
+                <!-- Chromatic Aberration: separates R/G/B channels by 1.0px for a smoother look -->
+                <filter id="ca-ultra" color-interpolation-filters="sRGB" x="-2%" y="-2%" width="104%" height="104%">
+                    <feColorMatrix type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="red" in="SourceGraphic"/>
+                    <feColorMatrix type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="green" in="SourceGraphic"/>
+                    <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="blue" in="SourceGraphic"/>
+                    <feOffset dx="-1.0" dy="0" in="red" result="red-s"/>
+                    <feOffset dx="1.0" dy="0" in="blue" result="blue-s"/>
+                    <feBlend in="red-s" in2="green" mode="screen" result="rg"/>
+                    <feBlend in="rg" in2="blue-s" mode="screen"/>
+                </filter>
+            </defs>
+        </svg>
 
         <!-- Play HUD -->
         <div id="ui-layer" class="hidden">
@@ -182,32 +197,33 @@
                     <div class="bind-row"><span>Interact:</span> <button id="bind-interact" onclick="rebind('interact')">E</button></div>
                     <div class="bind-row"><span>Toggle Aim:</span> <button id="bind-toggleAim" onclick="rebind('toggleAim')">Q</button></div>
                     <div class="bind-row"><span>Toggle Light:</span> <button id="bind-toggleLight" onclick="rebind('toggleLight')">L</button></div>
-                    <div class="bind-row" style="justify-content:flex-start; gap:10px; margin-top:10px; width:100%; border-top:1px solid #445; padding-top:10px;">
-                        <label>Mobile Movement:</label>
-                        <select id="set-movement-type" onchange="changeMovementType(this.value)" style="padding:5px; background:#222; color:#fff; border:1px solid #444; font-family:'Special Elite';">
-                            <option value="analog" selected>Analog Joystick</option>
-                            <option value="dpad">D-Pad (Arrows)</option>
-                        </select>
+                    <div class="bind-row" style="flex-direction:column; align-items:flex-start; gap:5px; margin-top:10px; border-top:1px solid #445; padding-top:10px;">
+                        <span>Safe Zone Padding (0-100px):</span>
+                        <input type="range" id="ed-safezone" min="0" max="100" value="0" oninput="changeSafeZone(this.value)" style="width:100%;">
                     </div>
-                    <div class="bind-row" style="justify-content:flex-start; gap:10px; margin-top:10px; width:100%; flex-direction:column; align-items:flex-start;">
-                        <label>Safe Zone Padding (<span id="val-safezone">0</span>px)</label>
-                        <p style="font-size:11px; color:#aaa; margin:0;">Mencegah tombol tertutup pinggiran layar (notch/kamera).</p>
-                        <input type="range" id="set-safezone" min="0" max="100" value="0" oninput="changeSafeZone(this.value)" style="width:100%;">
-                    </div>
-                    <div class="bind-row" style="justify-content:center; margin-top:10px; width:100%;">
-                        <button onclick="startMobileLayoutEditor()" style="width:100%; background:#2a2a8b;"><i class="fa-solid fa-arrows-up-down-left-right"></i> Customize Mobile UI Layout</button>
+                    <div style="margin-top:10px; text-align:center;">
+                        <button onclick="resetMobileLayout()" style="background:#800; color:#fff; border:1px solid #f00; padding:5px 15px; font-family:'Special Elite';">Reset Mobile Layout</button>
                     </div>
                 </div>
 
                 <div id="set-tab-graphics" class="set-tab-content hidden">
                     <div class="bind-row" style="flex-direction:column; align-items:flex-start; gap:5px;">
+                        <span>Graphics Quality:</span>
+                        <select id="ed-graphics-quality" onchange="changeGraphicsQuality(this.value)" style="width:100%; padding:5px; background:#222; color:#fff; border:1px solid #444; font-family:'Special Elite';">
+                            <option value="ultra">⚡ Ultra (RGB Bloom, Chromatic)</option>
+                            <option value="high">High (Soft Shadows, Blur)</option>
+                            <option value="medium">Medium (Fast, Battery Saver)</option>
+                            <option value="low">Low (Maximum Performance)</option>
+                        </select>
+                    </div>
+                    <div class="bind-row" style="flex-direction:column; align-items:flex-start; gap:5px; margin-top:10px;">
                         <span>Resolution / Scale Mode:</span>
                         <select id="ed-resolusi" onchange="changeResolution(this.value)" style="width:100%; padding:5px; background:#222; color:#fff; border:1px solid #444; font-family:'Special Elite';">
                             <option value="1280">Standard (Smooth)</option>
                             <option value="pixel">Crisp Pixel Art (HD)</option>
                         </select>
                     </div>
-                    <div class="bind-row" style="justify-content:flex-start; gap:10px;">
+                    <div class="bind-row" style="justify-content:flex-start; gap:10px; margin-top:10px;">
                         <input type="checkbox" id="ed-hdr" onchange="updateGraphicsFilter()"> <label for="ed-hdr">Enable HDR Bloom</label>
                     </div>
                     <div class="bind-row" style="justify-content:flex-start; gap:10px;">
@@ -432,14 +448,8 @@
             <!-- Top Buttons -->
             <button id="btn-pause" class="mc-btn mc-top" data-id="pause" style="top:20px; right:20px; transform: scale(0.7); transform-origin: top right;"><i class="fa-solid fa-pause"></i></button>
 
-            <!-- D-Pad -->
-            <button id="btn-up" class="mc-btn mc-dir" data-id="up" style="bottom:90px; left:90px;"><i class="fa-solid fa-caret-up"></i></button>
-            <button id="btn-left" class="mc-btn mc-dir" data-id="left" style="bottom:20px; left:20px;"><i class="fa-solid fa-caret-left"></i></button>
-            <button id="btn-right" class="mc-btn mc-dir" data-id="right" style="bottom:20px; left:160px;"><i class="fa-solid fa-caret-right"></i></button>
-            <button id="btn-down" class="mc-btn mc-dir" data-id="down" style="bottom:20px; left:90px;"><i class="fa-solid fa-caret-down"></i></button>
-
             <!-- Joystick -->
-            <div id="joystick-base" class="mc-btn hidden" data-id="joystick" style="bottom:20px; left:20px; width:160px; height:160px; border-radius:50%; background:rgba(20,20,20,0.3); border:2px solid rgba(85,85,85,0.4); display:flex; justify-content:center; align-items:center; touch-action:none;">
+            <div id="joystick-base" class="mc-btn" data-id="joystick" style="bottom:20px; left:20px; width:160px; height:160px; border-radius:50%; background:rgba(20,20,20,0.3); border:2px solid rgba(85,85,85,0.4); display:flex; justify-content:center; align-items:center; touch-action:none;">
                 <div id="joystick-knob" style="width:65px; height:65px; border-radius:50%; background:rgba(255,255,255,0.3); box-shadow:0 0 10px rgba(0,0,0,0.5); pointer-events:none; transition:transform 0.05s linear;"></div>
             </div>
 
