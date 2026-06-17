@@ -32,8 +32,8 @@ function changeSafeZone(val) {
     
     const mc = document.getElementById('mobile-controls');
     if (mc) {
-        mc.style.paddingLeft = val + 'px';
-        mc.style.paddingRight = val + 'px';
+        mc.style.left = val + 'px';
+        mc.style.width = `calc(100vw - ${val * 2}px)`;
     }
 }
 

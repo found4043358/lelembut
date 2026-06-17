@@ -201,7 +201,8 @@
                         <span>Safe Zone Padding (0-100px):</span>
                         <input type="range" id="ed-safezone" min="0" max="100" value="0" oninput="changeSafeZone(this.value)" style="width:100%;">
                     </div>
-                    <div style="margin-top:10px; text-align:center;">
+                    <div style="margin-top:10px; text-align:center; display:flex; gap:10px; justify-content:center;">
+                        <button onclick="startMobileLayoutEditor()" style="background:#006400; color:#fff; border:1px solid #0f0; padding:5px 15px; font-family:'Special Elite';">Customize Mobile Layout</button>
                         <button onclick="resetMobileLayout()" style="background:#800; color:#fff; border:1px solid #f00; padding:5px 15px; font-family:'Special Elite';">Reset Mobile Layout</button>
                     </div>
                 </div>
