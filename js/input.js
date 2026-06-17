@@ -295,7 +295,9 @@ function initInput(){
             mc.style.color = '#ff0000';
             mc.style.opacity = '0.8';
             mc.style.transition = 'none';
-            mc.style.left = touch.clientX + 'px';
+            // Offset the crosshair position by the safe zone to match touch clientX accurately
+            const safeZone = parseInt(localStorage.getItem('lelembut_safe_zone') || '0', 10);
+            mc.style.left = (touch.clientX - safeZone) + 'px';
             mc.style.top = touch.clientY + 'px';
         }
     }
