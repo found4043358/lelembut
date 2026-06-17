@@ -32,8 +32,8 @@ canvas{display:block;}
 #screen-fade.active{opacity:1;pointer-events:auto;}
 
 @keyframes gameStartFade {
-    0% { filter: brightness(0); opacity: 0; }
-    100% { filter: brightness(1); opacity: 1; }
+    0% { opacity: 0; }
+    100% { opacity: 1; }
 }
 .game-start-anim {
     animation: gameStartFade 5s ease-out forwards;

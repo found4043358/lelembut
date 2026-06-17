@@ -41,6 +41,11 @@ function startGameplay(resetAll=true){
     canvas.classList.remove('game-start-anim');
     void canvas.offsetWidth; // Force reflow to restart animation
     canvas.classList.add('game-start-anim');
+    
+    // Remove the class after the 5s animation finishes so it doesn't stay composited on GPU forever
+    setTimeout(() => {
+        canvas.classList.remove('game-start-anim');
+    }, 5500);
     currentMapIdx = respawnPoint.mapIdx;
     
     player.x = respawnPoint.x; player.y = respawnPoint.y;
