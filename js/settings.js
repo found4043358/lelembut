@@ -124,10 +124,15 @@ function toggleDevMode(isOn){
 function toggleForceMobileControls(isOn){
     const mc = document.getElementById('mobile-controls');
     if(mc){
-        if(isOn || 'ontouchstart' in window || navigator.maxTouchPoints > 0) {
-            mc.classList.remove('hidden');
-        } else {
+        if (typeof gameState !== 'undefined' && gameState !== 'PLAY' && gameState !== 'PAUSE') {
+            // Only show controls if actually in-game. Editor or Main Menu should hide them
             mc.classList.add('hidden');
+        } else {
+            if(isOn || 'ontouchstart' in window || navigator.maxTouchPoints > 0) {
+                mc.classList.remove('hidden');
+            } else {
+                mc.classList.add('hidden');
+            }
         }
     }
     saveGraphicsSettings();
@@ -301,9 +306,8 @@ function saveMobileLayout() {
     document.getElementById('mobile-layout-editor').classList.add('hidden');
     document.getElementById('settings-menu').classList.remove('hidden');
     
-    // Hide controls if we are just in the menu and force is not checked
-    const isForce = document.getElementById('set-force-mobile') && document.getElementById('set-force-mobile').checked;
-    if(gameState !== 'PLAY' && !isForce) {
+    // Hide controls if we are just in the menu
+    if(typeof gameState !== 'undefined' && gameState !== 'PLAY' && gameState !== 'PAUSE') {
         document.getElementById('mobile-controls').classList.add('hidden');
     }
 }
@@ -321,8 +325,7 @@ function cancelMobileLayout() {
     // Undo unsaved layout changes
     applyMobileLayout();
     
-    const isForce = document.getElementById('set-force-mobile') && document.getElementById('set-force-mobile').checked;
-    if(gameState !== 'PLAY' && !isForce) {
+    if(typeof gameState !== 'undefined' && gameState !== 'PLAY' && gameState !== 'PAUSE') {
         document.getElementById('mobile-controls').classList.add('hidden');
     }
 }

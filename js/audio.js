@@ -138,6 +138,8 @@ const Audio = {
         const now = performance.now();
         if(this.lastEnemyDieTime && now - this.lastEnemyDieTime < 100) return;
         this.lastEnemyDieTime = now;
+        if(typeof Auth !== 'undefined') Auth.addKill();
+        
         if(type === 'kuyang') this.playSfx('kuyang_die', 1.0);
         else if(type === 'stalker') this.playSfx('stalker_die', 1.0);
         else this.playSfx('enemy_die', 1.0);

@@ -1,4 +1,4 @@
-<script>window.onerror = function(m,s,l,c,e) { alert(m + ' at ' + l + ':' + c); }</script>
+<script>window.onerror = function(m,s,l,c,e) { if(m.includes('Script error')) return; alert(m + ' at ' + l + ':' + c); }</script>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -176,44 +176,49 @@
         </div>
 
         <!-- Settings Menu -->
-        <div id="settings-menu" class="overlay-menu hidden" onclick="if(event.target===this) closeSettings()" style="background:rgba(0,0,0,0.8); backdrop-filter:blur(8px);">
-            <div style="background:linear-gradient(135deg, #16161e, #0a0a0f); border:1px solid #440000; box-shadow:0 0 40px rgba(100,0,0,0.3), inset 0 0 15px rgba(0,0,0,0.8); padding:0; border-radius:12px; width:500px; max-width:90%; max-height:85vh; display:flex; flex-direction:column; position:relative; overflow:hidden;">
+        <div id="settings-menu" class="overlay-menu hidden" onclick="if(event.target===this) transitionTo(settingsReturnMenu)" style="background:rgba(0,0,0,0.8); backdrop-filter:blur(8px);">
+            <div style="background:#111; border:1px solid #333; box-shadow:0 0 40px rgba(0,0,0,0.8); padding:0; border-radius:12px; width:500px; max-width:90%; max-height:85vh; display:flex; flex-direction:column; position:relative; overflow:hidden;">
                 
-                <div style="padding:20px 20px 0 20px; border-bottom:1px solid rgba(255,50,50,0.2); background:rgba(0,0,0,0.4);">
+                <div style="padding:20px 20px 0 20px; border-bottom:1px solid #333; background:#0a0a0a;">
                     <button onclick="transitionTo(settingsReturnMenu)" style="position:absolute; top:20px; right:20px; background:transparent; border:none; color:#a33; font-size:24px; padding:0; min-width:auto; cursor:pointer; transition:color 0.2s;" onmouseover="this.style.color='#f33'" onmouseout="this.style.color='#a33'"><i class="fa-solid fa-xmark"></i></button>
                     <h2 style="margin:0 0 15px 0; color:#f33; font-family:'Special Elite'; text-align:left; font-size:24px; letter-spacing:2px; text-shadow:0 0 5px rgba(255,0,0,0.5);"><i class="fa-solid fa-gear" style="font-size:0.8em; margin-right:8px;"></i> SETTINGS</h2>
                     
-                    <div style="display:flex; gap:15px; margin-bottom:-1px;">
-                        <button class="set-tab-btn active" onclick="switchSetTab('controls')" style="background:transparent; border:none; border-bottom:2px solid transparent; border-radius:0; padding:10px 5px; min-width:auto; color:#888; font-family:'Special Elite'; font-size:16px; cursor:pointer; transition:all 0.2s;">Controls</button>
-                        <button class="set-tab-btn" onclick="switchSetTab('graphics')" style="background:transparent; border:none; border-bottom:2px solid transparent; border-radius:0; padding:10px 5px; min-width:auto; color:#888; font-family:'Special Elite'; font-size:16px; cursor:pointer; transition:all 0.2s;">Graphics</button>
-                        <button class="set-tab-btn" onclick="switchSetTab('music')" style="background:transparent; border:none; border-bottom:2px solid transparent; border-radius:0; padding:10px 5px; min-width:auto; color:#888; font-family:'Special Elite'; font-size:16px; cursor:pointer; transition:all 0.2s;">Music</button>
-                        <button class="set-tab-btn" onclick="switchSetTab('config')" style="background:transparent; border:none; border-bottom:2px solid transparent; border-radius:0; padding:10px 5px; min-width:auto; color:#888; font-family:'Special Elite'; font-size:16px; cursor:pointer; transition:all 0.2s;">Config</button>
+                    <div style="display:flex; gap:10px; margin-bottom:-1px; justify-content:space-around;">
+                        <button class="set-tab-btn active" onclick="switchSetTab('controls')" style="background:transparent; border:none; border-bottom:2px solid transparent; border-radius:0; padding:10px 5px; min-width:auto; color:#888; font-family:'Special Elite'; font-size:14px; cursor:pointer; transition:all 0.2s; display:flex; flex-direction:column; align-items:center; gap:8px;"><i class="fa-solid fa-gamepad" style="font-size:18px;"></i>Controls</button>
+                        <button class="set-tab-btn" onclick="switchSetTab('graphics')" style="background:transparent; border:none; border-bottom:2px solid transparent; border-radius:0; padding:10px 5px; min-width:auto; color:#888; font-family:'Special Elite'; font-size:14px; cursor:pointer; transition:all 0.2s; display:flex; flex-direction:column; align-items:center; gap:8px;"><i class="fa-solid fa-desktop" style="font-size:18px;"></i>Graphics</button>
+                        <button class="set-tab-btn" onclick="switchSetTab('music')" style="background:transparent; border:none; border-bottom:2px solid transparent; border-radius:0; padding:10px 5px; min-width:auto; color:#888; font-family:'Special Elite'; font-size:14px; cursor:pointer; transition:all 0.2s; display:flex; flex-direction:column; align-items:center; gap:8px;"><i class="fa-solid fa-music" style="font-size:18px;"></i>Music</button>
+                        <button class="set-tab-btn" onclick="switchSetTab('config')" style="background:transparent; border:none; border-bottom:2px solid transparent; border-radius:0; padding:10px 5px; min-width:auto; color:#888; font-family:'Special Elite'; font-size:14px; cursor:pointer; transition:all 0.2s; display:flex; flex-direction:column; align-items:center; gap:8px;"><i class="fa-solid fa-sliders" style="font-size:18px;"></i>Config</button>
+                        <button class="set-tab-btn" onclick="switchSetTab('account')" style="background:transparent; border:none; border-bottom:2px solid transparent; border-radius:0; padding:10px 5px; min-width:auto; color:#888; font-family:'Special Elite'; font-size:14px; cursor:pointer; transition:all 0.2s; display:flex; flex-direction:column; align-items:center; gap:8px;"><i class="fa-solid fa-user" style="font-size:18px;"></i>Account</button>
                     </div>
                 </div>
                 
                 <!-- Internal CSS for Tabs and Custom Selects -->
                 <style>
-                    .set-tab-btn:hover { color: #ccc !important; }
-                    .set-tab-btn.active { color: #f33 !important; border-bottom-color: #f33 !important; }
-                    .bind-row { background: rgba(255,255,255,0.03); border-radius: 6px; padding: 8px 12px; transition: background 0.2s; }
-                    .bind-row:hover { background: rgba(255,255,255,0.06); }
-                    .set-tab-content { padding: 20px; }
-                    .set-select { width:100%; padding:8px 12px; background:rgba(0,0,0,0.5); color:#fff; border:1px solid #444; border-radius:6px; font-family:'Special Elite'; outline:none; transition:border-color 0.2s; }
-                    .set-select:focus { border-color:#f33; }
+                    .set-tab-btn:hover { color: #fff !important; }
+                    .set-tab-btn.active { color: #fff !important; border-bottom-color: #fff !important; }
+                    .bind-row { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; max-width: 100% !important; }
+                    .bind-row:hover { background: rgba(255,255,255,0.08); }
+                    .bind-row span { color: #ccc; font-family: 'Special Elite'; letter-spacing: 1px; }
+                    .bind-row button { background: #222; color: #fff; border: 1px solid #444; border-radius: 4px; padding: 6px 15px; font-family: 'Courier New', monospace; font-size: 14px; cursor: pointer; transition: all 0.2s; min-width: 80px; box-shadow: none; margin: 0; }
+                    .bind-row button:hover { background: #333; border-color: #666; }
+                    .set-tab-content { padding: 20px 25px; }
+                    .set-select { width:100%; padding:10px 15px; background:#1a1a1a; color:#fff; border:1px solid #333; border-radius:6px; font-family:'Courier New', monospace; font-size:14px; outline:none; transition:border-color 0.2s; }
+                    .set-select:focus { border-color:#666; }
                     
                     /* Custom Select Styles */
                     .custom-select-wrapper { position: relative; user-select: none; width: 100%; }
                     .custom-select { position: relative; display: flex; flex-direction: column; }
-                    .custom-select__trigger { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #444; border-radius: 6px; cursor: pointer; font-family: 'Special Elite'; transition: all 0.2s; }
-                    .custom-select__trigger:hover { border-color: #f33; }
-                    .custom-select.open .custom-select__trigger { border-color: #f33; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+                    .custom-select__trigger { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: #1a1a1a; color: #fff; border: 1px solid #333; border-radius: 6px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px; transition: all 0.2s; }
+                    .custom-select__trigger:hover { border-color: #666; }
+                    .custom-select.open .custom-select__trigger { border-color: #666; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
                     .custom-select__trigger i { transition: transform 0.3s; }
                     .custom-select.open .custom-select__trigger i { transform: rotate(-180deg); }
-                    .custom-options { position: fixed; background: rgba(10,10,15,0.95); border: 1px solid #f33; border-top: none; border-radius: 0 0 6px 6px; opacity: 0; visibility: hidden; pointer-events: none; z-index: 9999; transform: translateY(-10px); transition: all 0.3s; backdrop-filter: blur(10px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+                    .custom-options { position: absolute; top: 100%; left: 0; right: 0; background: #1a1a1a; border: 1px solid #666; border-top: none; border-radius: 0 0 6px 6px; opacity: 0; visibility: hidden; pointer-events: none; z-index: 9999; transform: translateY(-5px); transition: all 0.2s; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
                     .custom-select.open .custom-options { opacity: 1; visibility: visible; pointer-events: all; transform: translateY(0); }
-                    .custom-option { padding: 10px 15px; color: #bbb; cursor: pointer; font-family: 'Special Elite'; transition: background 0.2s, color 0.2s; }
-                    .custom-option:hover { background: rgba(255,50,50,0.2); color: #fff; }
-                    .custom-option.selected { background: rgba(255,0,0,0.4); color: #fff; }
+                    .custom-option { padding: 12px 15px; color: #aaa; cursor: pointer; font-family: 'Courier New', monospace; font-size: 14px; transition: background 0.2s, color 0.2s; border-bottom: 1px solid #222; }
+                    .custom-option:last-child { border-bottom: none; }
+                    .custom-option:hover { background: #2a2a2a; color: #fff; }
+                    .custom-option.selected { background: #333; color: #fff; font-weight: bold; }
                 </style>
                 
                 <div style="overflow-y:auto; flex-grow:1; scrollbar-width:thin; scrollbar-color:#555 #111;">
@@ -248,27 +253,30 @@
                             <option value="pixel">Crisp Pixel Art (HD)</option>
                         </select>
                     </div>
-                    <div class="bind-row" style="justify-content:flex-start; gap:10px; margin-top:10px;">
-                        <input type="checkbox" id="ed-hdr" onchange="updateGraphicsFilter()"> <label for="ed-hdr">Enable HDR Bloom</label>
+                    <div class="bind-row">
+                        <span style="color:#ccc; font-family:'Special Elite';">Enable HDR Bloom</span>
+                        <input type="checkbox" id="ed-hdr" onchange="updateGraphicsFilter()" style="width:20px; height:20px; cursor:pointer;">
                     </div>
-                    <div class="bind-row" style="justify-content:flex-start; gap:10px;">
-                        <input type="checkbox" id="ed-crt" onchange="toggleCRT(this.checked)"> <label for="ed-crt">CRT Scanlines Effect</label>
+                    <div class="bind-row">
+                        <span style="color:#ccc; font-family:'Special Elite';">CRT Scanlines Effect</span>
+                        <input type="checkbox" id="ed-crt" onchange="toggleCRT(this.checked)" style="width:20px; height:20px; cursor:pointer;">
                     </div>
-                    <div class="bind-row" style="justify-content:flex-start; gap:10px;">
-                        <input type="checkbox" id="ed-film" onchange="toggleFilmMode(this.checked)"> <label for="ed-film">&#127916; Cinematic Letterbox (Film Mode)</label>
+                    <div class="bind-row">
+                        <span style="color:#ccc; font-family:'Special Elite';">&#127916; Cinematic Letterbox (Film Mode)</span>
+                        <input type="checkbox" id="ed-film" onchange="toggleFilmMode(this.checked)" style="width:20px; height:20px; cursor:pointer;">
                     </div>
-                    <div style="border-top:1px solid #445; margin-top:10px; padding-top:10px; display:flex; flex-direction:column; gap:8px;">
-                        <div style="display:flex; justify-content:space-between;">
-                            <label>Saturation:</label>
-                            <input type="range" id="gfx-sat" min="0" max="3" step="0.1" value="1" onchange="updateGraphicsFilter()">
+                    <div style="margin-top:10px; display:flex; flex-direction:column;">
+                        <div class="bind-row">
+                            <span>Saturation:</span>
+                            <input type="range" id="gfx-sat" min="0" max="3" step="0.1" value="1" onchange="updateGraphicsFilter()" style="flex:1; margin-left:20px;">
                         </div>
-                        <div style="display:flex; justify-content:space-between;">
-                            <label>Contrast:</label>
-                            <input type="range" id="gfx-con" min="0" max="3" step="0.1" value="1" onchange="updateGraphicsFilter()">
+                        <div class="bind-row">
+                            <span>Contrast:</span>
+                            <input type="range" id="gfx-con" min="0" max="3" step="0.1" value="1" onchange="updateGraphicsFilter()" style="flex:1; margin-left:20px;">
                         </div>
-                        <div style="display:flex; justify-content:space-between;">
-                            <label>Brightness:</label>
-                            <input type="range" id="gfx-bri" min="0" max="3" step="0.1" value="1" onchange="updateGraphicsFilter()">
+                        <div class="bind-row">
+                            <span>Brightness:</span>
+                            <input type="range" id="gfx-bri" min="0" max="3" step="0.1" value="1" onchange="updateGraphicsFilter()" style="flex:1; margin-left:20px;">
                         </div>
                     </div>
                     <div style="display:flex; justify-content:center; margin-top:15px; gap:10px; flex-direction:column;">
@@ -278,27 +286,33 @@
                 </div>
 
                 <div id="set-tab-music" class="set-tab-content hidden">
-                    <div style="border-top:1px solid #445; margin-top:10px; padding-top:10px; display:flex; flex-direction:column; gap:8px;">
-                        <div style="display:flex; justify-content:space-between;">
-                            <label>Music Volume:</label>
-                            <input type="range" id="set-music-vol" min="0" max="1" step="0.05" value="1" onchange="updateAudioSettings()">
+                    <div style="margin-top:10px; display:flex; flex-direction:column;">
+                        <div class="bind-row">
+                            <span>Music Volume:</span>
+                            <input type="range" id="set-music-vol" min="0" max="1" step="0.05" value="1" onchange="updateAudioSettings()" style="flex:1; margin-left:20px;">
                         </div>
-                        <div style="display:flex; justify-content:space-between;">
-                            <label>SFX Volume:</label>
-                            <input type="range" id="set-sfx-vol" min="0" max="1" step="0.05" value="1" onchange="updateAudioSettings()">
+                        <div class="bind-row">
+                            <span>SFX Volume:</span>
+                            <input type="range" id="set-sfx-vol" min="0" max="1" step="0.05" value="1" onchange="updateAudioSettings()" style="flex:1; margin-left:20px;">
                         </div>
                     </div>
                 </div>
 
                 <div id="set-tab-config" class="set-tab-content hidden">
-                    <div class="bind-row" style="justify-content:flex-start; gap:10px;">
-                        <input type="checkbox" id="set-devmode" onchange="toggleDevMode(this.checked)"> <label for="set-devmode">Enable Dev Mode</label>
+                    <div class="bind-row">
+                        <span style="color:#ccc; font-family:'Special Elite';">Enable Dev Mode</span>
+                        <input type="checkbox" id="set-devmode" onchange="toggleDevMode(this.checked)" style="width:20px; height:20px; cursor:pointer;">
                     </div>
                     <p style="color:#888; text-align:left; padding:5px 0 10px 0; font-size:12px;">Enables the Dev Menu on the main screen for advanced configuration.</p>
 
-                    <div class="bind-row" style="justify-content:flex-start; gap:10px; margin-top:10px; border-top:1px solid #445; padding-top:10px;">
-                        <input type="checkbox" id="set-force-mobile" onchange="toggleForceMobileControls(this.checked)"> <label for="set-force-mobile">Force On-Screen Buttons</label>
+                    <div class="bind-row" style="margin-top:10px; border-top:1px solid #445; padding-top:10px;">
+                        <span style="color:#ccc; font-family:'Special Elite';">Force On-Screen Buttons</span>
+                        <input type="checkbox" id="set-force-mobile" onchange="toggleForceMobileControls(this.checked)" style="width:20px; height:20px; cursor:pointer;">
                     </div>
+                </div>
+
+                <div id="set-tab-account" class="set-tab-content hidden">
+                    <div id="account-tab-content"></div>
                 </div>
 
                 </div>
@@ -619,6 +633,7 @@
     <script src="js/render.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/api.js"></script>
     <script src="js/editor.js"></script>
     <script src="js/main.js"></script>

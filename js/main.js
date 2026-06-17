@@ -485,7 +485,12 @@ function updatePlay(dt){
                 };
                 showToast("Checkpoint Saved!");
             }
-            else if(pk.t==='end'){Audio.save(); victory=true; transitionTo('victory-menu');}
+            else if(pk.t==='end'){
+                Audio.save(); 
+                victory=true; 
+                if(typeof Auth !== 'undefined') Auth.addWin();
+                transitionTo('victory-menu');
+            }
             updateHUD();
         }
     }
