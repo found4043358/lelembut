@@ -118,7 +118,13 @@ function setMenu(id){
     } else {
         if(id==='gameover-menu') { gameState='GAMEOVER'; Audio.stopBGM(); }
         else if(id==='victory-menu') { gameState='VICTORY'; Audio.stopBGM(); }
-        else { gameState='MENU'; Audio.playMenuBGM(); }
+        else {
+            if (id === 'settings-menu' && settingsReturnMenu === 'pause-menu') {
+                gameState = 'PAUSE';
+            } else {
+                gameState='MENU'; Audio.playMenuBGM(); 
+            }
+        }
         if(id) document.getElementById(id).classList.remove('hidden');
         document.body.classList.remove('playing');
     }

@@ -100,7 +100,7 @@ const Audio = {
         else if(type === 'kuyang') this.playSfx('kuyang_ambient', 1.0);
     },
     ui(type){
-        if(type === 'inventory') this.playSfx('inventory', 0.8);
+        if(type === 'inventory') this.playSfx('inventory', 1.6);
         else if(type === 'click') this.playSfx('click', 1.25);
     },
     walk(isWalking){

@@ -95,7 +95,7 @@
         <!-- Pause Menu -->
         <div id="pause-menu" class="overlay-menu hidden" style="background:rgba(0,0,0,0.9);">
             <h2>PAUSED</h2>
-            <button onclick="togglePause()"><i class="fa-solid fa-play"></i> Resume</button>
+            <button onclick="if(typeof Audio!=='undefined'&&typeof Audio.playSfx==='function')Audio.playSfx('click'); togglePause()"><i class="fa-solid fa-play"></i> Resume</button>
             <button onclick="restartLevel()"><i class="fa-solid fa-rotate-right"></i> Restart Level</button>
             <button onclick="openSettings('pause-menu')"><i class="fa-solid fa-gear"></i> Settings</button>
             <button id="pause-editor-btn" onclick="openEditorFromPause()" class="hidden" title="Map Editor"><i class="fa-solid fa-pen"></i></button>
@@ -209,7 +209,7 @@
                     .custom-select.open .custom-select__trigger { border-color: #f33; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
                     .custom-select__trigger i { transition: transform 0.3s; }
                     .custom-select.open .custom-select__trigger i { transform: rotate(-180deg); }
-                    .custom-options { position: absolute; top: 100%; left: 0; right: 0; background: rgba(10,10,15,0.95); border: 1px solid #f33; border-top: none; border-radius: 0 0 6px 6px; opacity: 0; visibility: hidden; pointer-events: none; z-index: 10; transform: translateY(-10px); transition: all 0.3s; backdrop-filter: blur(10px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+                    .custom-options { position: fixed; background: rgba(10,10,15,0.95); border: 1px solid #f33; border-top: none; border-radius: 0 0 6px 6px; opacity: 0; visibility: hidden; pointer-events: none; z-index: 9999; transform: translateY(-10px); transition: all 0.3s; backdrop-filter: blur(10px); box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
                     .custom-select.open .custom-options { opacity: 1; visibility: visible; pointer-events: all; transform: translateY(0); }
                     .custom-option { padding: 10px 15px; color: #bbb; cursor: pointer; font-family: 'Special Elite'; transition: background 0.2s, color 0.2s; }
                     .custom-option:hover { background: rgba(255,50,50,0.2); color: #fff; }
@@ -311,8 +311,8 @@
                 <h3 id="custom-alert-title" style="color:#f33; margin-top:0; border-bottom:1px solid #500; padding-bottom:10px; font-family:'Special Elite';">Confirm</h3>
                 <p id="custom-alert-message" style="color:#ddd; margin: 20px 0; font-size:18px;">Are you sure?</p>
                 <div style="display:flex; gap: 15px; justify-content:center; margin-top:20px;">
-                    <button id="custom-alert-btn-cancel" style="background:#333; color:#aaa; border:1px solid #444; padding:8px 20px; font-family:'Special Elite'; min-width: 100px; margin: 0;">Cancel</button>
-                    <button id="custom-alert-btn-ok" style="background:#800; color:#fff; border:1px solid #f00; padding:8px 20px; box-shadow: 0 0 10px #f005; font-family:'Special Elite'; min-width: 100px; margin: 0;">OK</button>
+                    <button id="custom-alert-btn-cancel" style="background: #222; color:#aaa; border:1px solid #444; padding:8px 20px; font-family:'Special Elite'; min-width: 100px; margin: 0; cursor: pointer; border-radius: 4px; transition: all 0.2s;">Cancel</button>
+                    <button id="custom-alert-btn-ok" style="background: #600; color:#fff; border:1px solid #a00; padding:8px 20px; box-shadow: 0 0 15px rgba(255,0,0,0.4); font-family:'Special Elite'; min-width: 100px; margin: 0; cursor: pointer; border-radius: 4px; transition: all 0.2s;">OK</button>
                 </div>
             </div>
         </div>
@@ -502,7 +502,7 @@
 
         <!-- Mobile Layout Editor Overlay -->
         <div id="mobile-layout-editor" class="hidden" style="position:absolute; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,50,0.5); z-index:140; display:flex; flex-direction:column; justify-content:center; align-items:center; pointer-events:auto;">
-            <div style="background:rgba(0,0,0,0.8); padding:15px; border-radius:10px; border:2px solid #0df; text-align:center; pointer-events:none; margin-bottom: 200px;">
+            <div style="background:rgba(0,0,0,0.8); padding:15px; border-radius:10px; border:2px solid #0df; text-align:center; pointer-events:none;">
                 <h2 style="color:#0df; margin:0 0 10px 0;">UI LAYOUT EDITOR</h2>
                 <p style="color:#fff;">Seret (Drag) tombol untuk memindahkannya.</p>
                 <div style="margin-top:10px; display:flex; gap:10px; justify-content:center; flex-direction: column;">
@@ -520,7 +520,7 @@
                     </div>
                 </div>
             </div>
-            <div style="position:absolute; top:20px; display:flex; gap:15px; flex-wrap:wrap; justify-content:center;">
+            <div style="margin-top:20px; display:flex; gap:15px; flex-wrap:wrap; justify-content:center;">
                 <button onclick="cancelMobileLayout()" style="background:#444; border-color:#666; pointer-events:auto;"><i class="fa-solid fa-xmark"></i> Batal</button>
                 <button onclick="resetMobileLayout()" style="background:#8b0000; pointer-events:auto;"><i class="fa-solid fa-rotate-left"></i> Reset Default</button>
                 <button onclick="saveMobileLayout()" style="background:#005500; border-color:#0f0; pointer-events:auto;"><i class="fa-solid fa-check"></i> Selesai & Simpan</button>
@@ -569,6 +569,8 @@
         
         function restoreAudioAndStart() {
             if(typeof Audio !== 'undefined') {
+                if(typeof Audio.init === 'function') Audio.init();
+                if(typeof Audio.playSfx === 'function') Audio.playSfx('click');
                 const mVol = document.getElementById('set-music-vol') ? parseFloat(document.getElementById('set-music-vol').value) : 1.0;
                 const sVol = document.getElementById('set-sfx-vol') ? parseFloat(document.getElementById('set-sfx-vol').value) : 1.0;
                 Audio.setMusicVolume(mVol);
@@ -582,18 +584,22 @@
             if(typeof showCustomConfirm === 'function') {
                 showCustomConfirm("KELUAR GAME", "Apakah kamu yakin ingin keluar dari alam lelembut?", () => {
                     if(typeof Audio !== 'undefined') {
-                        Audio.stopBGM();
-                        Audio.setMusicVolume(0);
-                        Audio.setSfxVolume(0);
-                    }
-                    if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-                        window.flutter_inappwebview.callHandler('exitApp');
-                    } else if(typeof navigator.app !== 'undefined' && navigator.app.exitApp) {
-                        navigator.app.exitApp();
-                    } else if(typeof window.Android !== 'undefined' && window.Android.exitApp) {
-                        window.Android.exitApp();
-                    } else {
-                        transitionTo('welcome-menu');
+                        if(typeof Audio.playSfx === 'function') Audio.playSfx('click');
+                        // Wait a tiny bit for the sound to play before exiting
+                        setTimeout(() => {
+                            Audio.stopBGM();
+                            Audio.setMusicVolume(0);
+                            Audio.setSfxVolume(0);
+                            if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+                                window.flutter_inappwebview.callHandler('exitApp');
+                            } else if(typeof navigator.app !== 'undefined' && navigator.app.exitApp) {
+                                navigator.app.exitApp();
+                            } else if(typeof window.Android !== 'undefined' && window.Android.exitApp) {
+                                window.Android.exitApp();
+                            } else {
+                                transitionTo('welcome-menu');
+                            }
+                        }, 100);
                     }
                 });
             }
@@ -601,6 +607,7 @@
     </script>
     <script src="js/globals.js"></script>
     <script src="js/ui.js"></script>
+    <script src="js/custom_select.js"></script>
     <script src="js/input.js"></script>
     <script src="js/audio.js"></script>
     <script src="js/particles.js"></script>
