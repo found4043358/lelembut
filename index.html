@@ -175,19 +175,34 @@
             <button onclick="transitionTo('main-menu')"><i class="fa-solid fa-arrow-left"></i> Back</button>
         </div>
 
-        <!-- Settings -->
-        <div id="settings-menu" class="overlay-menu hidden" style="background:rgba(15,15,20,0.95);">
-            <div style="background:#1a1a24; border:1px solid #445; padding:20px; border-radius:5px; width:500px; max-width:90%; max-height:90vh; display:flex; flex-direction:column;">
-                <h2 style="margin-bottom:15px; border-bottom:1px solid #445; padding-bottom:5px;">SETTINGS</h2>
+        <!-- Settings Menu -->
+        <div id="settings-menu" class="overlay-menu hidden" onclick="if(event.target===this) closeSettings()" style="background:rgba(0,0,0,0.8); backdrop-filter:blur(8px);">
+            <div style="background:linear-gradient(135deg, #16161e, #0a0a0f); border:1px solid #440000; box-shadow:0 0 40px rgba(100,0,0,0.3), inset 0 0 15px rgba(0,0,0,0.8); padding:0; border-radius:12px; width:500px; max-width:90%; max-height:85vh; display:flex; flex-direction:column; position:relative; overflow:hidden;">
                 
-                <div style="display:flex; gap:2px; margin-bottom:15px;">
-                    <button class="set-tab-btn active" onclick="switchSetTab('controls')">Controls</button>
-                    <button class="set-tab-btn" onclick="switchSetTab('graphics')">Graphics</button>
-                    <button class="set-tab-btn" onclick="switchSetTab('music')">Music</button>
-                    <button class="set-tab-btn" onclick="switchSetTab('config')">Config</button>
+                <div style="padding:20px 20px 0 20px; border-bottom:1px solid rgba(255,50,50,0.2); background:rgba(0,0,0,0.4);">
+                    <button onclick="transitionTo(settingsReturnMenu)" style="position:absolute; top:20px; right:20px; background:transparent; border:none; color:#a33; font-size:24px; padding:0; min-width:auto; cursor:pointer; transition:color 0.2s;" onmouseover="this.style.color='#f33'" onmouseout="this.style.color='#a33'"><i class="fa-solid fa-xmark"></i></button>
+                    <h2 style="margin:0 0 15px 0; color:#f33; font-family:'Special Elite'; text-align:left; font-size:24px; letter-spacing:2px; text-shadow:0 0 5px rgba(255,0,0,0.5);"><i class="fa-solid fa-gear" style="font-size:0.8em; margin-right:8px;"></i> SETTINGS</h2>
+                    
+                    <div style="display:flex; gap:15px; margin-bottom:-1px;">
+                        <button class="set-tab-btn active" onclick="switchSetTab('controls')" style="background:transparent; border:none; border-bottom:2px solid transparent; border-radius:0; padding:10px 5px; min-width:auto; color:#888; font-family:'Special Elite'; font-size:16px; cursor:pointer; transition:all 0.2s;">Controls</button>
+                        <button class="set-tab-btn" onclick="switchSetTab('graphics')" style="background:transparent; border:none; border-bottom:2px solid transparent; border-radius:0; padding:10px 5px; min-width:auto; color:#888; font-family:'Special Elite'; font-size:16px; cursor:pointer; transition:all 0.2s;">Graphics</button>
+                        <button class="set-tab-btn" onclick="switchSetTab('music')" style="background:transparent; border:none; border-bottom:2px solid transparent; border-radius:0; padding:10px 5px; min-width:auto; color:#888; font-family:'Special Elite'; font-size:16px; cursor:pointer; transition:all 0.2s;">Music</button>
+                        <button class="set-tab-btn" onclick="switchSetTab('config')" style="background:transparent; border:none; border-bottom:2px solid transparent; border-radius:0; padding:10px 5px; min-width:auto; color:#888; font-family:'Special Elite'; font-size:16px; cursor:pointer; transition:all 0.2s;">Config</button>
+                    </div>
                 </div>
                 
-                <div style="overflow-y:auto; padding-right:10px; flex-grow:1;">
+                <!-- Internal CSS for Tabs -->
+                <style>
+                    .set-tab-btn:hover { color: #ccc !important; }
+                    .set-tab-btn.active { color: #f33 !important; border-bottom-color: #f33 !important; }
+                    .bind-row { background: rgba(255,255,255,0.03); border-radius: 6px; padding: 8px 12px; transition: background 0.2s; }
+                    .bind-row:hover { background: rgba(255,255,255,0.06); }
+                    .set-tab-content { padding: 20px; }
+                    .set-select { width:100%; padding:8px 12px; background:rgba(0,0,0,0.5); color:#fff; border:1px solid #444; border-radius:6px; font-family:'Special Elite'; outline:none; transition:border-color 0.2s; }
+                    .set-select:focus { border-color:#f33; }
+                </style>
+                
+                <div style="overflow-y:auto; flex-grow:1; scrollbar-width:thin; scrollbar-color:#555 #111;">
                     <div id="set-tab-controls" class="set-tab-content">
                     <div style="margin-bottom:15px; text-align:center;">
                         <button onclick="startMobileLayoutEditor()" style="background:#006400; color:#fff; border:1px solid #0f0; padding:5px 15px; font-family:'Special Elite'; width: 100%;">Customize Mobile Layout</button>
@@ -203,18 +218,18 @@
                 </div>
 
                 <div id="set-tab-graphics" class="set-tab-content hidden">
-                    <div class="bind-row" style="flex-direction:column; align-items:flex-start; gap:5px;">
-                        <span>Graphics Quality:</span>
-                        <select id="ed-graphics-quality" onchange="changeGraphicsQuality(this.value)" style="width:100%; padding:5px; background:#222; color:#fff; border:1px solid #444; font-family:'Special Elite';">
+                    <div class="bind-row" style="flex-direction:column; align-items:flex-start; gap:8px;">
+                        <span style="color:#aaa;">Graphics Quality:</span>
+                        <select id="ed-graphics-quality" onchange="changeGraphicsQuality(this.value)" class="set-select">
                             <option value="ultra">⚡ Ultra (RGB Bloom, Chromatic)</option>
                             <option value="high">High (Soft Shadows, Blur)</option>
                             <option value="medium">Medium (Fast, Battery Saver)</option>
                             <option value="low">Low (Maximum Performance)</option>
                         </select>
                     </div>
-                    <div class="bind-row" style="flex-direction:column; align-items:flex-start; gap:5px; margin-top:10px;">
-                        <span>Resolution / Scale Mode:</span>
-                        <select id="ed-resolusi" onchange="changeResolution(this.value)" style="width:100%; padding:5px; background:#222; color:#fff; border:1px solid #444; font-family:'Special Elite';">
+                    <div class="bind-row" style="flex-direction:column; align-items:flex-start; gap:8px; margin-top:10px;">
+                        <span style="color:#aaa;">Resolution / Scale Mode:</span>
+                        <select id="ed-resolusi" onchange="changeResolution(this.value)" class="set-select">
                             <option value="1280">Standard (Smooth)</option>
                             <option value="pixel">Crisp Pixel Art (HD)</option>
                         </select>
@@ -273,7 +288,6 @@
                 </div>
 
                 </div>
-                <button onclick="transitionTo(settingsReturnMenu)" style="margin-top:20px; width:100%; background:#444; flex-shrink:0;"><i class="fa-solid fa-check"></i> Close</button>
             </div>
         </div>
 
