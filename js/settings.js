@@ -298,15 +298,41 @@ function resetMobileLayout() {
     if(document.getElementById('mc-scale-slider')) document.getElementById('mc-scale-slider').value = 1.0;
     if(document.getElementById('mc-opacity-slider')) document.getElementById('mc-opacity-slider').value = 0.6;
     
-    // Reset Buttons inline styles (fall back to style.css)
+    // Default positions mapping
+    const defaults = {
+        'btn-shoot-left': { bottom: '190px', left: '20px', right: '', top: '' },
+        'btn-interact': { bottom: '170px', right: '100px', left: '', top: '' },
+        'btn-reload': { bottom: '20px', right: '100px', left: '', top: '' },
+        'btn-aim': { bottom: '100px', right: '20px', left: '', top: '' },
+        'btn-shoot': { bottom: '170px', right: '20px', left: '', top: '' },
+        'btn-light': { bottom: '20px', left: '230px', right: '', top: '' },
+        'btn-aim-shoot': { bottom: '20px', left: '275px', right: '', top: '' },
+        'btn-camera': { bottom: '20px', left: '320px', right: '', top: '' },
+        'btn-dev': { bottom: '20px', left: '365px', right: '', top: '' },
+        'btn-jump': { bottom: '20px', right: '20px', left: '', top: '' },
+        'joystick-base': { bottom: '20px', left: '20px', right: '', top: '' }
+    };
+    
     document.querySelectorAll('.mc-btn').forEach(btn => {
-        btn.style.transform = 'none';
+        btn.style.transform = btn.id.includes('light') || btn.id.includes('aim-shoot') || btn.id.includes('camera') || btn.id.includes('dev') ? 'scale(0.7)' : 'none';
         btn.style.opacity = '1';
-        btn.style.left = '';
-        btn.style.top = '';
-        btn.style.right = '';
-        btn.style.bottom = '';
+        if(defaults[btn.id]) {
+            btn.style.left = defaults[btn.id].left;
+            btn.style.top = defaults[btn.id].top;
+            btn.style.right = defaults[btn.id].right;
+            btn.style.bottom = defaults[btn.id].bottom;
+        }
     });
+    
+    const jb = document.getElementById('joystick-base');
+    if(jb) {
+        jb.style.transform = 'none';
+        jb.style.opacity = '1';
+        jb.style.left = defaults['joystick-base'].left;
+        jb.style.top = defaults['joystick-base'].top;
+        jb.style.right = defaults['joystick-base'].right;
+        jb.style.bottom = defaults['joystick-base'].bottom;
+    }
 }
 
 // Load local settings synchronously
