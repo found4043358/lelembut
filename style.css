@@ -41,6 +41,16 @@ canvas{display:block;}
 
 .hidden{display:none!important}
 
+/* Disable effects for medium graphics and below */
+body.no-effects .overlay-menu { background: #000 !important; transition: none !important; }
+body.no-effects .game-title { text-shadow: none !important; color: #cc0000 !important; animation: none !important; }
+body.no-effects .horror-loader { animation: none !important; }
+body.no-effects .fade-in-list { animation: none !important; opacity: 1 !important; transform: none !important; }
+body.no-effects button { box-shadow: none !important; transition: none !important; }
+body.no-effects p { animation: none !important; }
+body.no-effects #prompt-box { animation: none !important; opacity: 1 !important; }
+body.no-effects #crt-overlay { display: none !important; }
+
 /* Menus */
 .overlay-menu{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(5,0,0,0.85);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100;
 transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease; opacity: 1; visibility: visible; transform: scale(1);}

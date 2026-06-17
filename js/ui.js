@@ -21,6 +21,20 @@ function openEditorFromPause() {
 
 function transitionTo(targetMenuOrFunction) {
     if(isTransitioning) return;
+    
+    if (window.graphicsQuality === 'low' || window.graphicsQuality === 'lowest' || window.graphicsQuality === 'ultralow') {
+        try {
+            if(typeof targetMenuOrFunction === 'function'){
+                targetMenuOrFunction();
+            } else {
+                setMenu(targetMenuOrFunction);
+            }
+        } catch(e) {
+            console.error("Transition error:", e);
+        }
+        return;
+    }
+
     isTransitioning = true;
     const fade = document.getElementById('screen-fade');
     

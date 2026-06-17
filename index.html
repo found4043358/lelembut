@@ -244,7 +244,14 @@
                             <option value="high">High (Soft Shadows, Blur)</option>
                             <option value="medium">Medium (Fast, Battery Saver)</option>
                             <option value="low">Low (Maximum Performance)</option>
+                            <option value="lowest">🥔 Lowest (Potato Mode)</option>
+                            <option value="ultralow">💀 Ultra Lowest (Pixel Art Extreme)</option>
                         </select>
+                    </div>
+                    <div class="bind-row">
+                        <label for="set-show-fps" style="display:flex; align-items:center; cursor:pointer; color:#ccc; font-family:'Special Elite'; letter-spacing:1px; width:100%;">
+                            <input type="checkbox" id="set-show-fps" onchange="toggleShowFPS(this.checked)" style="margin-right:10px; width:18px; height:18px; cursor:pointer;"> Show Realtime FPS
+                        </label>
                     </div>
                     <div class="bind-row" style="flex-direction:column; align-items:flex-start; gap:8px; margin-top:10px;">
                         <span style="color:#aaa;">Resolution / Scale Mode:</span>

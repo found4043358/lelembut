@@ -32,7 +32,7 @@ function initInput(){
         window.rawMouseX = e.clientX;
         window.rawMouseY = e.clientY;
         const rect = canvas.getBoundingClientRect();
-        const dpr = window.devicePixelRatio || 1;
+        const dpr = typeof getGraphicsDPR === 'function' ? getGraphicsDPR() : (window.devicePixelRatio || 1);
         const cssX = e.clientX - rect.left;
         const cssY = e.clientY - rect.top;
         const canvasX = cssX * dpr;
@@ -272,7 +272,7 @@ function initInput(){
         window.rawMouseX = touch.clientX;
         window.rawMouseY = touch.clientY;
         const rect = canvas.getBoundingClientRect();
-        const dpr = window.devicePixelRatio || 1;
+        const dpr = typeof getGraphicsDPR === 'function' ? getGraphicsDPR() : (window.devicePixelRatio || 1);
         const cssX = touch.clientX - rect.left;
         const cssY = touch.clientY - rect.top;
         const canvasX = cssX * dpr;

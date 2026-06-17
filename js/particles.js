@@ -1,12 +1,14 @@
 // ============ PARTICLES ============
 const particles=[];
 function pEmit(x,y,n,color,sMin,sMax,grav){
+    if (window.graphicsQuality === 'ultralow' || window.graphicsQuality === 'lowest') return; // Potato Mode
     for(let i=0;i<n;i++){
         const a=Math.random()*Math.PI*2,s=sMin+Math.random()*(sMax-sMin);
         particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-10,life:1,decay:1.5+Math.random(),color,sz:1.5+Math.random()*3,g:grav||180});
     }
 }
 function pDust(x,y,dir){
+    if (window.graphicsQuality === 'ultralow' || window.graphicsQuality === 'lowest') return; // Potato Mode
     for(let i=0;i<2;i++) particles.push({x:x+(Math.random()-.5)*10,y,vx:-dir*(15+Math.random()*25),vy:-8-Math.random()*12,life:.6+Math.random()*.3,decay:2,color:'rgba(150,140,130,.7)',sz:2.5+Math.random()*3,g:50});
 }
 function pText(x,y,text,color){

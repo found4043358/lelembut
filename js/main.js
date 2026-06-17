@@ -905,7 +905,9 @@ function updatePlay(dt){
     
     Audio.rain(hasWeather('rain'));
 
-    updateParticles(dt);
+    if(gameState === 'PLAY' || gameState === 'EDITOR' || gameState === 'PAUSE') {
+        updateParticles(dt);
+    }
 
     const m = getActiveMap();
     if(!devMode && player.y>m.h+50){player.hp=0;} 
@@ -1057,9 +1059,36 @@ function loop(t){
         ctx.fillRect(0, canvas.height - DRAW_OFFSET_Y - barH, canvas.width, DRAW_OFFSET_Y + barH);
     }
 
+    // FPS Counter (Realtime)
+    if(window.showFPS) {
+        if(!window.lastFpsTime) { window.lastFpsTime = performance.now(); window.frameCount = 0; window.currentFps = 0; }
+        window.frameCount++;
+        if(performance.now() - window.lastFpsTime >= 1000) {
+            window.currentFps = window.frameCount;
+            window.frameCount = 0;
+            window.lastFpsTime = performance.now();
+        }
+        const dpr = typeof getGraphicsDPR === 'function' ? getGraphicsDPR() : 1;
+        const fontSize = Math.max(10, Math.floor(16 * dpr));
+        const fpsTxt = `FPS: ${window.currentFps}`;
+        ctx.font = `bold ${fontSize}px Courier New`;
+        const txtW = ctx.measureText(fpsTxt).width;
+        const cx = canvas.width / 2;
+        const padX = 10 * dpr;
+        const padY = 5 * dpr;
+        const boxH = fontSize + padY * 2;
+        const topY = 10 * dpr;
+        
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(cx - txtW/2 - padX, topY, txtW + padX*2, boxH);
+        ctx.fillStyle = window.currentFps < 30 ? '#ff4444' : (window.currentFps < 50 ? '#ffaa00' : '#00ff00');
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(fpsTxt, cx, topY + boxH/2);
+    }
+
     requestAnimationFrame(loop);
 }
-
 // Boot
 initInput();
 lightInit();

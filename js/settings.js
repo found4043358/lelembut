@@ -399,6 +399,16 @@ function loadLocalSettingsSync() {
     const savedSafeZone = localStorage.getItem('lelembut_safe_zone') || 0;
     if(document.getElementById('ed-safezone')) document.getElementById('ed-safezone').value = savedSafeZone;
     changeSafeZone(savedSafeZone);
+    
+    // FPS
+    const savedFps = localStorage.getItem('lelembut_show_fps');
+    if(savedFps === '1') {
+        window.showFPS = true;
+        if(document.getElementById('set-show-fps')) document.getElementById('set-show-fps').checked = true;
+    } else {
+        window.showFPS = false;
+        if(document.getElementById('set-show-fps')) document.getElementById('set-show-fps').checked = false;
+    }
 }
 
 // Load settings on boot
@@ -406,6 +416,7 @@ window.addEventListener('load', () => {
     loadLocalSettingsSync();
     applyMobileLayout();
     loadSettings();
+    if(typeof resizeWindow === 'function') resizeWindow();
 });
 
 function changeGraphicsQuality(type) {
@@ -425,5 +436,20 @@ function changeGraphicsQuality(type) {
         if (!_baseCanvasFilter) _baseCanvasFilter = 'none';
     }
     gameCanvas.style.filter = _baseCanvasFilter;
+    
+    // Disable effects (animations, shadows, CRT) on medium and below
+    if (type === 'medium' || type === 'low' || type === 'lowest' || type === 'ultralow') {
+        document.body.classList.add('no-effects');
+    } else {
+        document.body.classList.remove('no-effects');
+    }
+    
+    // Force canvas resize to apply new DPR scale
+    if(typeof resizeWindow === 'function') resizeWindow();
+}
+
+function toggleShowFPS(isOn) {
+    window.showFPS = isOn;
+    localStorage.setItem('lelembut_show_fps', isOn ? '1' : '0');
 }
 

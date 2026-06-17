@@ -237,8 +237,20 @@ function handleEditorClick(cx, cy, isErase=false){
 }
 
 const canvas=document.getElementById('gameCanvas');
+
+function getGraphicsDPR() {
+    let baseDpr = window.devicePixelRatio || 1;
+    if (typeof window.graphicsQuality !== 'undefined') {
+        if (window.graphicsQuality === 'medium') return Math.min(baseDpr, 1.0);
+        if (window.graphicsQuality === 'low') return Math.min(baseDpr, 0.75);
+        if (window.graphicsQuality === 'lowest') return Math.min(baseDpr, 0.5);
+        if (window.graphicsQuality === 'ultralow') return Math.min(baseDpr, 0.25);
+    }
+    return baseDpr;
+}
+
 function resizeWindow(){
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = getGraphicsDPR();
     canvas.width = window.innerWidth * dpr;
     canvas.height = window.innerHeight * dpr;
     canvas.style.width = window.innerWidth + 'px';
@@ -272,7 +284,7 @@ resizeWindow();
 
 function getMousePos(e){
     const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = getGraphicsDPR();
     const cssX = e.clientX - rect.left;
     const cssY = e.clientY - rect.top;
     

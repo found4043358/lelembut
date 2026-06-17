@@ -80,9 +80,24 @@ function lightDraw(ctx, px, py) {
     lc.moveTo(sx, sy);
     // High: 160 rays (blur(45px) smooths the inter-ray gaps, saves ~33% CPU raycast time)
     // Ultra: 200 rays, step 3 (sharpest possible before blur softens)
-    // Medium/Low: 120 rays (blur(8px)/blur(3px) cover it, saves ~50% CPU raycast time)
-    const numRays = (window.graphicsQuality === 'ultra') ? 200 : (window.graphicsQuality === 'high') ? 160 : 120;
-    const maxDepth = (window.graphicsQuality === 'low') ? 15 : (window.graphicsQuality === 'medium') ? 15 : 25; 
+    // Medium: 120 rays, Low: 60 rays, Lowest: 30 rays, Ultralow: 15 rays
+    let numRays = 120;
+    if (window.graphicsQuality === 'ultra') numRays = 200;
+    else if (window.graphicsQuality === 'high') numRays = 160;
+    else if (window.graphicsQuality === 'low') numRays = 60;
+    else if (window.graphicsQuality === 'lowest') numRays = 30;
+    else if (window.graphicsQuality === 'ultralow') numRays = 15;
+    
+    let maxDepth = 25;
+    if (window.graphicsQuality === 'low') maxDepth = 15;
+    else if (window.graphicsQuality === 'lowest') maxDepth = 5;
+    else if (window.graphicsQuality === 'ultralow') maxDepth = 2; // Almost no penetration
+    
+    let step = 5;
+    if (window.graphicsQuality === 'ultra') step = 3;
+    else if (window.graphicsQuality === 'high') step = 4;
+    else if (window.graphicsQuality === 'lowest' || window.graphicsQuality === 'ultralow') step = 10; // Huge steps, very fast
+
     const rayPoints = [];
     for (let i = 0; i <= numRays; i++) {
         let a = lightAngle - cone / 2 + (cone * i / numRays);
@@ -91,7 +106,7 @@ function lightDraw(ctx, px, py) {
         let hitDepth = 0;
         let hit = false;
         while (dist < radius) {
-            dist += (window.graphicsQuality === 'ultra') ? 3 : (window.graphicsQuality === 'high') ? 4 : 5; // blur covers stepping, fewer iterations
+            dist += step;
             let wx = px + dx * dist, wy = py + dy * dist;
             let t = mapTile(Math.floor(wx / TS), Math.floor(wy / TS));
             if (isSolidTile(t) && t !== 8) {
@@ -123,11 +138,15 @@ function lightDraw(ctx, px, py) {
         lc.fillStyle = bg;
         lc.fill();
         lc.filter = 'none';
-    } else {
+    } else if (window.graphicsQuality === 'low') {
         lc.filter = 'blur(3px)'; // minimum effective softening, ~7x cheaper than medium
         lc.fillStyle = bg;
         lc.fill();
         lc.filter = 'none';
+    } else {
+        // Potato Mode: Hard edges, NO filter, maximum performance
+        lc.fillStyle = bg;
+        lc.fill();
     }
     lc.restore();
 
@@ -268,7 +287,7 @@ function lightDraw(ctx, px, py) {
     ctx.drawImage(lightCvs, 0, 0);
 
     // 2. Post-lighting bloom and effects
-    if (window.graphicsQuality === 'low') return; // Low: skip all bloom
+    if (window.graphicsQuality === 'low' || window.graphicsQuality === 'lowest' || window.graphicsQuality === 'ultralow') return; // Low/Potato: skip all bloom
 
     const isUltra = window.graphicsQuality === 'ultra';
 
